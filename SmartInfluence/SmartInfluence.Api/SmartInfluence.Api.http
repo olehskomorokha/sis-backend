@@ -1,0 +1,6 @@
+@SmartInfluence.Api_HostAddress = http://localhost:5144
+
+GET {{SmartInfluence.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
