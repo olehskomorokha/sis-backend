@@ -11,8 +11,8 @@ public class AppDbContext : DbContext
     }
 
     public DbSet<Audience> Audiences => Set<Audience>();
-    public DbSet<Campaign> Campaigns => Set<Campaign>();
-    public DbSet<CampaignInfluencer> CampaignInfluencers => Set<CampaignInfluencer>();
+    public DbSet<Client> Clients => Set<Client>();
+    public DbSet<ClientInfluencer> ClientInfluencers => Set<ClientInfluencer>();
     public DbSet<ContentAnalysis> ContentAnalyses => Set<ContentAnalysis>();
     public DbSet<FraudSignal> FraudSignals => Set<FraudSignal>();
     public DbSet<Influencers> Influencers => Set<Influencers>();
