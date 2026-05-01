@@ -1,4 +1,5 @@
-﻿using SmartInfluence.Data.Entities;
+using Microsoft.EntityFrameworkCore;
+using SmartInfluence.Data.Entities;
 using SmartInfluence.Data.Interfaces;
 
 namespace SmartInfluence.Data.Repositories;
@@ -12,14 +13,19 @@ public class ClientRepository : IClientRepository
         _dbContext = dbContext;
     }
 
-    public Task GetAllAsync()
+    public async Task<List<Client>> GetAllAsync()
     {
-        return Task.FromResult(_dbContext.Clients.ToList());
+        return await _dbContext.Clients.ToListAsync();
     }
 
     public Task<Client?> GetByIdAsync(int id)
     {
         return Task.FromResult(_dbContext.Clients.FirstOrDefault(x => x.Id == id));
+    }
+
+    public Task<Client?> GetByEmailAsync(string email)
+    {
+        return _dbContext.Clients.FirstOrDefaultAsync(x => x.Email == email);
     }
 
     public Task CreateAsync(Client client)

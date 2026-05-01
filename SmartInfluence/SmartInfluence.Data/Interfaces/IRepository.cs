@@ -1,6 +1,6 @@
-﻿namespace SmartInfluence.Data.Interfaces;
+namespace SmartInfluence.Data.Interfaces;
 
-public interface IRepository
+public interface IRepository<T>
 {
-    public Task GetAllAsync();
+    public Task<List<T>> GetAllAsync();
 }
