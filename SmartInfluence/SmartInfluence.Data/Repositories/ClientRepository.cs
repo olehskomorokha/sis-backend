@@ -33,4 +33,10 @@ public class ClientRepository : IClientRepository
         _dbContext.Clients.Add(client);
         return _dbContext.SaveChangesAsync();
     }
+
+    public Task UpdateAsync(Client client)
+    {
+        _dbContext.Clients.Update(client);
+        return _dbContext.SaveChangesAsync();
+    }
 }
