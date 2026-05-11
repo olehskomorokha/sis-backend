@@ -1,0 +1,35 @@
+using Microsoft.AspNetCore.Mvc;
+using SmartInfluence.Services.Interfaces;
+using SmartInfluence.Services.Models;
+
+namespace SmartInfluence.Api.Controllers;
+
+[Route("api/[controller]")]
+[ApiController]
+public class InfluencerController : ControllerBase
+{
+    private readonly IInfluencerService _influencerService;
+
+    public InfluencerController(IInfluencerService influencerService)
+    {
+        _influencerService = influencerService;
+    }
+
+    [HttpGet]
+    public async Task<ActionResult<List<InfluencerResponseModel>>> GetAllAsync()
+    {
+        return Ok(await _influencerService.GetAllAsync());
+    }
+
+    [HttpGet("{id:int}")]
+    public async Task<ActionResult<InfluencerResponseModel>> GetByIdAsync(int id)
+    {
+        var influencer = await _influencerService.GetByIdAsync(id);
+        if (influencer == null)
+        {
+            return NotFound();
+        }
+
+        return Ok(influencer);
+    }
+}

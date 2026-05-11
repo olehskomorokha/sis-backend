@@ -14,11 +14,16 @@ namespace SmartInfluence.Services.Services;
 public class ClientService : IClientService
 {
     private readonly IClientRepository _clientRepository;
+    private readonly IInfluencerRepository _influencerRepository;
     private readonly IConfiguration _configuration;
 
-    public ClientService(IClientRepository clientRepository, IConfiguration configuration)
+    public ClientService(
+        IClientRepository clientRepository,
+        IInfluencerRepository influencerRepository,
+        IConfiguration configuration)
     {
         _clientRepository = clientRepository;
+        _influencerRepository = influencerRepository;
         _configuration = configuration;
     }
 
@@ -37,6 +42,30 @@ public class ClientService : IClientService
 
         model.Password = HashPassword(model.Password);
         await _clientRepository.CreateAsync(ClientMapper.MapToCreateClientModel(model));
+    }
+
+    public async Task<bool> UpdateAsync(int id, UpdateClientModel model)
+    {
+        if (model == null)
+        {
+            throw new ArgumentNullException(nameof(model));
+        }
+
+        var client = await _clientRepository.GetByIdAsync(id);
+        if (client == null)
+        {
+            return false;
+        }
+
+        ApplyClientSettings(client, model);
+        await _clientRepository.UpdateAsync(client);
+        return true;
+    }
+
+    public async Task<List<InfluencerResponseModel>> GetInfluencersByClientIdAsync(int clientId)
+    {
+        var influencers = await _influencerRepository.GetByClientIdAsync(clientId);
+        return influencers.Select(InfluencerMapper.MapToResponseModel).ToList();
     }
 
     public async Task<string> LoginAsync(LoginClientModel model)
@@ -64,6 +93,41 @@ public class ClientService : IClientService
         catch (Exception)
         {
             throw new PasswordHashingException("failed_to_hash", "Failed to hash client password.");
+        }
+    }
+
+    private static void ApplyClientSettings(
+        Data.Entities.Client client,
+        UpdateClientModel model)
+    {
+        if (!string.IsNullOrWhiteSpace(model.Brand))
+        {
+            client.Brand = model.Brand;
+        }
+
+        if (!string.IsNullOrWhiteSpace(model.Email))
+        {
+            client.Email = model.Email;
+        }
+
+        if (model.Budget.HasValue)
+        {
+            client.Budget = model.Budget;
+        }
+
+        if (!string.IsNullOrWhiteSpace(model.TargetCountry))
+        {
+            client.TargetCountry = model.TargetCountry;
+        }
+
+        if (!string.IsNullOrWhiteSpace(model.TargetAudience))
+        {
+            client.TargetAudience = model.TargetAudience;
+        }
+
+        if (!string.IsNullOrWhiteSpace(model.Goals))
+        {
+            client.Goals = model.Goals;
         }
     }
 

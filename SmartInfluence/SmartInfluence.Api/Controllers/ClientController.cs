@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartInfluence.Services.Exceptions;
 using SmartInfluence.Services.Interfaces;
@@ -22,10 +24,42 @@ public class ClientController : ControllerBase
         return Ok(await _clientService.GetAllAsync());
     }
 
+    [Authorize]
+    [HttpGet("influencers")]
+    public async Task<ActionResult<List<InfluencerResponseModel>>> GetInfluencersAsync()
+    {
+        var clientIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!int.TryParse(clientIdValue, out var clientId))
+        {
+            return Unauthorized();
+        }
+
+        return Ok(await _clientService.GetInfluencersByClientIdAsync(clientId));
+    }
+
     [HttpPost]
     public async Task<ActionResult> CreateAsync([FromBody] CreateClientModel model)
     {
         await _clientService.CreateAsync(model);
+        return Ok();
+    }
+
+    [Authorize]
+    [HttpPut]
+    public async Task<ActionResult> UpdateAsync([FromBody] UpdateClientModel model)
+    {
+        var clientIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!int.TryParse(clientIdValue, out var clientId))
+        {
+            return Unauthorized();
+        }
+
+        var isUpdated = await _clientService.UpdateAsync(clientId, model);
+        if (!isUpdated)
+        {
+            return NotFound();
+        }
+
         return Ok();
     }
 
