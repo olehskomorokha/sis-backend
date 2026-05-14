@@ -43,6 +43,7 @@ public class ProductQueryAiService : IProductQueryAiService
                   "maxFakeFollowersPercent": 0
                 }
                 Use empty strings, empty arrays, or nulls when the field is unknown.
+                Do not use 0 for unknown numeric fields.
                 """
             ),
             new UserChatMessage(productDescription)

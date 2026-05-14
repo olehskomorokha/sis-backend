@@ -25,6 +25,7 @@ public class InfluencerRecommendationService : IInfluencerRecommendationService
         var candidates = await _recommendationRepository.GetCandidatesAsync();
 
         var results = candidates
+            .Where(candidate => MatchesClientFilters(candidate, request))
             .Select(candidate => BuildRecommendation(candidate, criteria))
             .Where(result => result != null)
             .Select(result => result!)
@@ -39,12 +40,60 @@ public class InfluencerRecommendationService : IInfluencerRecommendationService
         };
     }
 
+    private static bool MatchesClientFilters(
+        InfluencerRecommendationCandidateData candidate,
+        InfluencerRecommendationRequestModel request)
+    {
+        var filters = request.Filters;
+
+        if (!string.IsNullOrWhiteSpace(filters.Platform) &&
+            !string.Equals(candidate.Influencer.Platform, filters.Platform, StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        if (!string.IsNullOrWhiteSpace(filters.Country) &&
+            !string.Equals(candidate.Influencer.Country, filters.Country, StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        if (filters.Tags.Count > 0 && !MatchesTags(candidate, filters.Tags))
+        {
+            return false;
+        }
+
+        if (filters.MinFollowersCount.HasValue &&
+            candidate.Influencer.FollowersCount < filters.MinFollowersCount.Value)
+        {
+            return false;
+        }
+
+        if (filters.MaxFollowersCount.HasValue &&
+            candidate.Influencer.FollowersCount > filters.MaxFollowersCount.Value)
+        {
+            return false;
+        }
+
+        if (filters.MinEngagementRatePercent.HasValue)
+        {
+            var engagementRatePercent = CalculateEngagementRate(candidate.Influencer) * 100m;
+            if (engagementRatePercent < filters.MinEngagementRatePercent.Value)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     private RecommendedInfluencerModel? BuildRecommendation(
         InfluencerRecommendationCandidateData candidate,
         ProductCriteriaModel criteria)
     {
         var authenticityGate = criteria.MaxFakeFollowersPercent;
         if (authenticityGate.HasValue &&
+            authenticityGate.Value > 0 &&
             candidate.Audience != null &&
             candidate.Audience.FakeFollowersPercent > authenticityGate.Value)
         {
@@ -158,7 +207,8 @@ public class InfluencerRecommendationService : IInfluencerRecommendationService
                 : NormalizePercent(audience.MalePercent));
         }
 
-        if (criteria.AgeMin.HasValue || criteria.AgeMax.HasValue)
+        var hasAgeCriteria = criteria.AgeMin.GetValueOrDefault() > 0 || criteria.AgeMax.GetValueOrDefault() > 0;
+        if (hasAgeCriteria)
         {
             scores.Add(CalculateAgeScore(audience, criteria.AgeMin, criteria.AgeMax));
         }
@@ -168,14 +218,19 @@ public class InfluencerRecommendationService : IInfluencerRecommendationService
 
     private static decimal CalculateEngagementScore(Influencers influencer)
     {
+        var engagementRate = CalculateEngagementRate(influencer);
+        return Math.Clamp(engagementRate / 0.15m, 0m, 1m);
+    }
+
+    private static decimal CalculateEngagementRate(Influencers influencer)
+    {
         if (influencer.FollowersCount <= 0)
         {
             return 0m;
         }
 
         var weightedEngagement = influencer.AvgLikes + influencer.AvgComments * 2m;
-        var engagementRate = weightedEngagement / influencer.FollowersCount;
-        return Math.Clamp(engagementRate / 0.15m, 0m, 1m);
+        return weightedEngagement / influencer.FollowersCount;
     }
 
     private static decimal CalculateAuthenticityScore(Audience? audience, InfluencerScore? score)
@@ -256,6 +311,41 @@ public class InfluencerRecommendationService : IInfluencerRecommendationService
     private static decimal NormalizeScore(decimal value)
     {
         return value > 1m ? Math.Clamp(value / 100m, 0m, 1m) : Math.Clamp(value, 0m, 1m);
+    }
+
+    private static bool MatchesTags(
+        InfluencerRecommendationCandidateData candidate,
+        IReadOnlyCollection<string> requestedTags)
+    {
+        var candidateTerms = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var term in SplitTerms(candidate.Influencer.Bio))
+        {
+            candidateTerms.Add(term);
+        }
+
+        foreach (var tag in candidate.Tags.SelectMany(SplitTerms))
+        {
+            candidateTerms.Add(tag);
+        }
+
+        foreach (var topic in candidate.Topics.SelectMany(SplitTerms))
+        {
+            candidateTerms.Add(topic);
+        }
+
+        foreach (var requestedTag in requestedTags)
+        {
+            foreach (var term in SplitTerms(requestedTag))
+            {
+                if (candidateTerms.Contains(term))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private static IEnumerable<string> SplitTerms(string text)
