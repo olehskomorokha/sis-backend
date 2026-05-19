@@ -40,6 +40,12 @@ public class InfluencerRecommendationService : IInfluencerRecommendationService
         };
     }
 
+    public async Task<string> AiExplanation(InfluencerResponseModel model)
+    {
+
+        return "";
+    }
+
     private static bool MatchesClientFilters(
         InfluencerRecommendationCandidateData candidate,
         InfluencerRecommendationRequestModel request)
@@ -83,7 +89,6 @@ public class InfluencerRecommendationService : IInfluencerRecommendationService
                 return false;
             }
         }
-
         return true;
     }
 
