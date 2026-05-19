@@ -11,4 +11,13 @@
       <Folder Include="Extensions\" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="Google.Apis.YouTube.v3" Version="1.74.0.4137" />
+      <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.7" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\SmartInfluence.Data\SmartInfluence.Data.csproj" />
+    </ItemGroup>
+
 </Project>
