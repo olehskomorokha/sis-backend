@@ -12,13 +12,13 @@ public static partial class YouTubeApi
 
         public string? CustomUrl { get; init; }
 
-        public string? PublishedAt { get; init; }
+        public string PublishedAt { get; init; }
 
         public string? Country { get; init; }
 
-        public ulong? SubscriberCount { get; init; }
-
         public ulong? VideoCount { get; init; }
+
+        public ulong? SubscriberCount { get; init; }
 
         public ulong? ViewCount { get; init; }
 
@@ -27,5 +27,22 @@ public static partial class YouTubeApi
         public required string SourceQuery { get; init; }
 
         public required string ChannelUrl { get; init; }
+        public required string Uploads  { get; init; }
+        public required Statictics Statictics { get; init; }
     }
+
+    public sealed record Statictics
+    {
+        public int ViewCount { get; init; }
+        public ulong? SubscriberCount { get; init; }
+        public bool HiddenSubscriberCount { get; init; }
+        public ulong? VideoCount { get; init; }
+    }
+
+    public sealed record TopicDetails
+    {
+        public string TopicId { get; init; }
+        public string TopicCategories { get; init; }
+    }
+
 }

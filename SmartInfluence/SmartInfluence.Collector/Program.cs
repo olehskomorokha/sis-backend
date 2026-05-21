@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using Elastic.Clients.Elasticsearch;
 using SmartInfluence.Collector.YouTube;
 
 Console.OutputEncoding = Encoding.UTF8;
@@ -20,13 +21,54 @@ if (string.IsNullOrWhiteSpace(apiKey))
 
 var count = TryParseCount(args);
 var outputPath = Path.Combine(projectDirectory, "Output", "ukrainian-youtube-bloggers.json");
+var elasticConfiguration = ResolveElasticConfiguration(projectDirectory);
+var youTubeAdapter = new YouTubeAdapter();
 
 Console.WriteLine($"Starting YouTube export. Count: {count}");
 Console.WriteLine($"Output file: {outputPath}");
+Console.WriteLine($"Elasticsearch indexing: {(elasticConfiguration is null ? "disabled" : "enabled")}");
 
 try
 {
-    var channels = await YouTubeApi.ExportUkrainianBloggersToJsonAsync(apiKey, count, outputPath);
+    ElasticsearchClient? elasticClient = null;
+    if (elasticConfiguration is not null)
+    {
+        var settings = new ElasticsearchClientSettings(new Uri(elasticConfiguration.Url))
+            .DefaultIndex(elasticConfiguration.DefaultIndex);
+
+        if (!string.IsNullOrWhiteSpace(elasticConfiguration.ApiKey))
+        {
+            settings = settings.Authentication(new Elastic.Transport.ApiKey(elasticConfiguration.ApiKey));
+        }
+
+        elasticClient = new ElasticsearchClient(settings);
+    }
+
+    var channels = await YouTubeApi.ExportUkrainianBloggersToJsonAsync(
+        apiKey,
+        count,
+        outputPath,
+        async (channel, cancellationToken) =>
+        {
+            if (elasticClient is null || elasticConfiguration is null)
+            {
+                return;
+            }
+
+            var influencer = youTubeAdapter.MapToInfluencer(channel);
+            var response = await elasticClient.IndexAsync(
+                influencer,
+                descriptor => descriptor
+                    .Index(elasticConfiguration.DefaultIndex)
+                    .Id(influencer.InfluencerId),
+                cancellationToken);
+
+            if (!response.IsValidResponse)
+            {
+                var reason = response.ElasticsearchServerError?.Error?.Reason ?? response.DebugInformation;
+                throw new InvalidOperationException($"Failed to index influencer '{influencer.InfluencerId}' into Elasticsearch. {reason}");
+            }
+        });
 
     Console.WriteLine();
     Console.WriteLine($"Export finished. Saved {channels.Count} channels.");
@@ -81,6 +123,15 @@ static string? ResolveYouTubeApiKey(string projectDirectory)
         ?? ReadApiKeyFromJson(apiConfigPath);
 }
 
+static ElasticConfiguration? ResolveElasticConfiguration(string projectDirectory)
+{
+    var collectorConfigPath = Path.Combine(projectDirectory, "appsettings.json");
+    var collectorDevConfigPath = Path.Combine(projectDirectory, "appsettings.Development.json");
+
+    return ReadElasticConfigurationFromJson(collectorDevConfigPath)
+        ?? ReadElasticConfigurationFromJson(collectorConfigPath);
+}
+
 static string? ReadApiKeyFromJson(string path)
 {
     if (!File.Exists(path))
@@ -104,7 +155,42 @@ static string? ReadApiKeyFromJson(string path)
     return apiKeyElement.GetString();
 }
 
+static ElasticConfiguration? ReadElasticConfigurationFromJson(string path)
+{
+    if (!File.Exists(path))
+    {
+        return null;
+    }
+
+    using var stream = File.OpenRead(path);
+    using var document = JsonDocument.Parse(stream);
+
+    if (!document.RootElement.TryGetProperty("Elasticsearch", out var elasticsearchSection))
+    {
+        return null;
+    }
+
+    if (!elasticsearchSection.TryGetProperty("Url", out var urlElement) ||
+        string.IsNullOrWhiteSpace(urlElement.GetString()))
+    {
+        return null;
+    }
+
+    if (!elasticsearchSection.TryGetProperty("DefaultIndex", out var defaultIndexElement) ||
+        string.IsNullOrWhiteSpace(defaultIndexElement.GetString()))
+    {
+        return null;
+    }
+
+    return new ElasticConfiguration(
+        urlElement.GetString()!,
+        defaultIndexElement.GetString()!,
+        elasticsearchSection.TryGetProperty("ApiKey", out var apiKeyElement) ? apiKeyElement.GetString() : null);
+}
+
 static string FormatNumber(ulong? value)
 {
     return value?.ToString("N0") ?? "n/a";
 }
+
+sealed record ElasticConfiguration(string Url, string DefaultIndex, string? ApiKey);
