@@ -1,25 +1,45 @@
 ﻿using Elastic.Clients.Elasticsearch;
+using Google.Apis.Services;
+using Google.Apis.YouTube.v3;
 using Microsoft.Extensions.Configuration;
 
 namespace SmartInfluence.Collector.Extentions;
 
-public class Settings
+public static class Settings
 {
-    public static YouTubeRequestModel _requestModel = new YouTubeRequestModel();
-    public static ElasticsearchClient LoadElasticSettings()
-    {
+    public static YouTubeRequestModel RequestModel { get; private set; } = null!;
 
+    public static YouTubeRequestModel LoadRequestModel()
+    {
         var configuration = new ConfigurationBuilder()
+            .SetBasePath(AppContext.BaseDirectory)
             .AddJsonFile("appsettings.json", optional: false)
             .AddEnvironmentVariables()
             .Build();
 
-        var elasticUrl = configuration["ElasticsearchLocal:Url"]!;
-        var elasticIndex = configuration["Elasticsearch:DefaultIndex"]!;
+        var youtubeApiKey = configuration["YouTube:ApiKey"];
 
-        var client = new ElasticsearchClient(
+        var elasticUrl = configuration["ElasticsearchLocal:Url"]!;
+        var elasticIndex = configuration["ElasticsearchLocal:DefaultIndex"] ?? "influencers";
+
+        var elasticClient = new ElasticsearchClient(
             new ElasticsearchClientSettings(new Uri(elasticUrl))
                 .DefaultIndex(elasticIndex));
-        return client;
+
+        var youtubeService = new YouTubeService(new BaseClientService.Initializer
+        {
+            ApiKey = youtubeApiKey,
+            ApplicationName = "SmartInfluence.Collector"
+        });
+
+        RequestModel = new YouTubeRequestModel
+        {
+            Service = youtubeService,
+            Elasticsearch = elasticClient,
+            ElasticIndex = elasticIndex,
+            Count = int.TryParse(configuration["YouTube:CollectCount"], out var count) && count > 0 ? count : 10
+        };
+
+        return RequestModel;
     }
 }

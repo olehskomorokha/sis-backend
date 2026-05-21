@@ -1,13 +1,9 @@
-using System.Text;
 using System.Text.Json;
-using SmartInfluence.Collector.Extentions;
-using SmartInfluence.Data.Entities;
 
 namespace SmartInfluence.Collector.YouTube;
 
 public sealed class YouTubeAdapter
 {
-    private readonly Settings _settings;
     private static readonly JsonSerializerOptions JsonSerializerOptions = new()
     {
         PropertyNameCaseInsensitive = true

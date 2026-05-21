@@ -1,10 +1,16 @@
-﻿namespace SmartInfluence.Collector.Extentions;
+﻿using Elastic.Clients.Elasticsearch;
+
+namespace SmartInfluence.Collector.Extentions;
 
 public class YouTubeRequestModel
 {
-    public Google.Apis.YouTube.v3.YouTubeService Service { get; set; }
+    public required Google.Apis.YouTube.v3.YouTubeService Service { get; init; }
 
-    public int Count { get; set; }
+    public required ElasticsearchClient Elasticsearch { get; init; }
 
-    public CancellationToken CancellationToken { get; set; }
+    public required string ElasticIndex { get; init; }
+
+    public int Count { get; init; } = 50;
+
+    public CancellationToken CancellationToken { get; init; }
 }

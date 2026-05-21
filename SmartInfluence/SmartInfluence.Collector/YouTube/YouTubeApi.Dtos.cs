@@ -12,7 +12,7 @@ public static partial class YouTubeApi
 
         public string? CustomUrl { get; init; }
 
-        public string PublishedAt { get; init; }
+        public string? PublishedAt { get; init; }
 
         public string? Country { get; init; }
 
@@ -23,8 +23,7 @@ public static partial class YouTubeApi
         public ulong? ViewCount { get; init; }
 
         public string? ThumbnailUrl { get; init; }
-
-        public required string SourceQuery { get; init; }
+        public DateTime IndexedAt { get; init; }
 
         public required string ChannelUrl { get; init; }
         public required string Uploads  { get; init; }
@@ -39,10 +38,14 @@ public static partial class YouTubeApi
         public ulong? VideoCount { get; init; }
     }
 
-    public sealed record TopicDetails
+    public sealed record PlayListItems
     {
-        public string TopicId { get; init; }
-        public string TopicCategories { get; init; }
+        public string? VideoId { get; init; }
+        public string? PublishedAt { get; init; }
+        public string? ChannelId { get; init; }
+        public string? Title { get; init; }
+        public string? Description { get; init; }
+        public string? ChannelTitle { get; init; }
     }
 
 }
