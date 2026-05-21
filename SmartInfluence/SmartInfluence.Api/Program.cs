@@ -9,8 +9,26 @@ using SmartInfluence.Data.Repositories;
 using SmartInfluence.Services.Interfaces;
 using SmartInfluence.Services.Services;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using Elastic.Clients.Elasticsearch;
+using Elastic.Transport;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddSingleton(_ =>
+{
+    var esUrl = builder.Configuration["Elasticsearch:Url"]
+        ?? throw new InvalidOperationException("Missing configuration key 'Elasticsearch:Url'.");
+    var esIndex = builder.Configuration["Elasticsearch:DefaultIndex"] ?? "influencers";
+    var esApiKey = builder.Configuration["Elasticsearch:ApiKey"];
+
+    var settings = new ElasticsearchClientSettings(new Uri(esUrl)).DefaultIndex(esIndex);
+    if (!string.IsNullOrWhiteSpace(esApiKey))
+    {
+        settings = settings.Authentication(new ApiKey(esApiKey));
+    }
+
+    return new ElasticsearchClient(settings);
+});
 
 builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
