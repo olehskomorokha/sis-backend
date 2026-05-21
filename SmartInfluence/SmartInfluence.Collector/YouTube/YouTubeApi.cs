@@ -1,3 +1,5 @@
+using SmartInfluence.Collector.Extentions;
+
 namespace SmartInfluence.Collector.YouTube;
 
 public static partial class YouTubeApi
@@ -57,18 +59,18 @@ public static partial class YouTubeApi
 
         foreach (var query in UkrainianChannelQueries)
         {
-            if (collected.Count >= count)
+            if (collected.Count >= model.Count)
             {
                 break;
             }
 
-            var searchRequest = service.Search.List("snippet");
+            var searchRequest = model.Service.Search.List("snippet");
             searchRequest.Q = query;
             searchRequest.Type = "channel";
             searchRequest.RegionCode = "UA";
             searchRequest.MaxResults = 25;
 
-            var searchResponse = await searchRequest.ExecuteAsync(cancellationToken);
+            var searchResponse = await searchRequest.ExecuteAsync(model.CancellationToken);
             var channelIds = searchResponse.Items?
                 .Select(item => item.Snippet?.ChannelId)
                 .Where(channelId => !string.IsNullOrWhiteSpace(channelId))
@@ -82,11 +84,11 @@ public static partial class YouTubeApi
 
             var channelsRequest = service.Channels.List("snippet,contentDetails,statistics,topicDetails, brandingSettings");
             channelsRequest.Id = string.Join(",", channelIds);
-            var channelsResponse = await channelsRequest.ExecuteAsync(cancellationToken);
+            var channelsResponse = await channelsRequest.ExecuteAsync(model.CancellationToken);
 
             foreach (var channel in channelsResponse.Items)
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                model.CancellationToken.ThrowIfCancellationRequested();
 
                 if (string.IsNullOrWhiteSpace(channel.Id) || collected.ContainsKey(channel.Id))
                 {
@@ -127,7 +129,7 @@ public static partial class YouTubeApi
                     await onChannelCollected(dto, cancellationToken);
                 }
 
-                if (collected.Count >= count)
+                if (collected.Count >= model.Count)
                 {
                     break;
                 }
@@ -137,7 +139,7 @@ public static partial class YouTubeApi
         return collected.Values
             .OrderByDescending(channel => channel.SubscriberCount ?? 0)
             .ThenBy(channel => channel.Title, StringComparer.OrdinalIgnoreCase)
-            .Take(count)
+            .Take(model.Count)
             .ToArray();
     }
 }
