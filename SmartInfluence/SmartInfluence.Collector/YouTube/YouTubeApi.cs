@@ -11,8 +11,8 @@ public static partial class YouTubeApi
     public static async Task CollectUkrainianChannelsAsync(YouTubeRequestModel model)
     {
         var collected = new Dictionary<string, UkrainianYouTubeBloggerDto>(StringComparer.OrdinalIgnoreCase);
-        var query = UkrainianChannelQueries[3];
-
+        //var query = UkrainianChannelQueries[3];
+        var query = "Дім";
         var searchRequest = model.Service.Search.List("snippet");
         searchRequest.Q = query;
         searchRequest.Type = "channel";
@@ -29,7 +29,7 @@ public static partial class YouTubeApi
             .ToArray();
 
         var channelsRequest = model.Service.Channels.List("snippet,contentDetails,statistics,topicDetails,brandingSettings");
-        channelsRequest.Id = string.Join(",", channelIds);
+        channelsRequest.Id = string.Join(",", channelIds ?? []);
         var channelsResponse = await channelsRequest.ExecuteAsync(model.CancellationToken);
 
         foreach (var channel in channelsResponse.Items ?? [])
@@ -77,40 +77,75 @@ public static partial class YouTubeApi
             s.Index(model.ElasticIndex)
             .Size(50)
             .Sort(sort => sort.Field(f => f.IndexedAt, fieldSort => fieldSort.Order(Elastic.Clients.Elasticsearch.SortOrder.Desc))));
-        var uploadsList = response.Documents.Select(x => x.Uploads).Where(x => !string.IsNullOrWhiteSpace(x)).ToList();
+        var channelsToProcess = response.Documents
+            .Where(x => !string.IsNullOrWhiteSpace(x.ChannelId) && !string.IsNullOrWhiteSpace(x.Uploads))
+            .Select(x => new
+            {
+                x.ChannelId,
+                x.Uploads
+            })
+            .ToList();
         
-        foreach (var upload in uploadsList)
+        foreach (var channel in channelsToProcess)
         {
             model.CancellationToken.ThrowIfCancellationRequested();
 
-            if (string.IsNullOrWhiteSpace(upload))
+            if (string.IsNullOrWhiteSpace(channel.Uploads))
             {
                 continue;
             }
 
-            Console.WriteLine($"Trying playlist: {upload}");
+            Console.WriteLine($"{channel.ChannelId} --> {channel.Uploads}");
 
             try
             {
-                var request = model.Service.PlaylistItems.List("snippet,contentDetails");
-                request.PlaylistId = upload;
-                request.MaxResults = 50;
+                var searchRequest = model.Service.PlaylistItems.List("snippet,contentDetails");
+                searchRequest.PlaylistId = channel.Uploads;
+                searchRequest.MaxResults = 50;
 
-                var searchResponse = await request.ExecuteAsync(model.CancellationToken);
+                var searchResponse = await searchRequest.ExecuteAsync(model.CancellationToken);
+                var videoIds = searchResponse.Items?
+                    .Select(item => item.Snippet?.ResourceId?.VideoId)
+                    .Where(videoId => !string.IsNullOrWhiteSpace(videoId))
+                    .ToArray() ?? [];
+
+                Console.WriteLine($"{channel.ChannelId} --> {channel.Uploads} --> {string.Join(", ", videoIds)}");
 
                 foreach (var item in searchResponse.Items ?? [])
                 {
                     var dto = Mapper.MapToPlayListItems(item);
 
+                    if (string.IsNullOrWhiteSpace(dto.VideoId))
+                    {
+                        continue;
+                    }
+
+                    var videoId = dto.VideoId;
+
                     await model.Elasticsearch.IndexAsync(
                         dto,
-                        d => d.Index("playlist-items").Id(dto.VideoId),
+                        d => d.Index("playlist-items").Id("UploadId:" + channel.Uploads + "-" + videoId),
                         model.CancellationToken);
+
+                    var videoRequest = model.Service.Videos.List("snippet,contentDetails,localizations,recordingDetails,statistics,status,topicDetails");
+                    videoRequest.Id = videoId;
+
+                    var videoResponse = await videoRequest.ExecuteAsync(model.CancellationToken);
+
+                    foreach (var video in videoResponse.Items ?? [])
+                    {
+                        var videoDto = Mapper.MapToVideoDetails(video);
+
+                        await model.Elasticsearch.IndexAsync(
+                            videoDto,
+                            d => d.Index("youtube-video-details").Id(videoDto.VideoId),
+                            model.CancellationToken);
+                    }
                 }
             }
             catch (Google.GoogleApiException ex)
             {
-                Console.WriteLine($"Playlist failed: {upload}");
+                Console.WriteLine($"Playlist failed: {channel.ChannelId} --> {channel.Uploads}");
                 Console.WriteLine(ex.Message);
             }
         }
