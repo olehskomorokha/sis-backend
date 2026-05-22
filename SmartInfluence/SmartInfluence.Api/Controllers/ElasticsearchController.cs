@@ -22,7 +22,7 @@ public class ElasticsearchController : ControllerBase
         return await _elasticserchService.GetAllBloggerTags();
     }
 
-    public async Task<List<InfluencerResponseModel>> GetByFilters(InfluencerRecommendationRequestModel model)
+    public async Task<List<InfluencerSearchModel>> GetByFilters(FiltersModel model)
     {
         return await _elasticserchService.GetByFilters(model);
     }

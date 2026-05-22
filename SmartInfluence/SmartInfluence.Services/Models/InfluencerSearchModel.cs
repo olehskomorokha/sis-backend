@@ -11,5 +11,5 @@ public class InfluencerSearchModel
     public long ViewCount { get; set; }
     public string channelUrl { get; set; }
     public string Tags { get; set; }
-    public InfluencerStatistics Statistics { get; set; }
+    public InfluencerStatistics? Statistics { get; set; }
 }

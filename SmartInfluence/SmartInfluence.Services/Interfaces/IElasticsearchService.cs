@@ -5,5 +5,5 @@ namespace SmartInfluence.Services.Interfaces;
 public interface IElasticsearchService
 {
     public Task<List<string>> GetAllBloggerTags();
-    public Task<List<InfluencerResponseModel>> GetByFilters(InfluencerRecommendationRequestModel model);
+    public Task<List<InfluencerSearchModel>> GetByFilters(FiltersModel model);
 }

@@ -40,7 +40,7 @@ public class ElasticsearchService : IElasticsearchService
         return uniqueTags;
     }
 
-    public async Task<List<InfluencerResponseModel>> GetByFilters(InfluencerRecommendationRequestModel model)
+    public async Task<List<InfluencerSearchModel>> GetByFilters(FiltersModel model)
     {
         
     }
