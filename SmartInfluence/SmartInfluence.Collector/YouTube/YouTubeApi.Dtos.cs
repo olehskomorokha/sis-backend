@@ -42,10 +42,53 @@ public static partial class YouTubeApi
     {
         public string? VideoId { get; init; }
         public string? PublishedAt { get; init; }
+        public string? PlaylistId { get; init; }
         public string? ChannelId { get; init; }
         public string? Title { get; init; }
         public string? Description { get; init; }
         public string? ChannelTitle { get; init; }
     }
 
+    public sealed record VideoDetails
+    {
+        public required string VideoId { get; init; }
+
+        public string? ChannelId { get; init; }
+
+        public string? ChannelTitle { get; init; }
+
+        public string? Title { get; init; }
+
+        public string? Description { get; init; }
+
+        public string? PublishedAt { get; init; }
+
+        public string? ThumbnailUrl { get; init; }
+
+        public string? Tags { get; init; }
+        
+        public string? TopicCategories { get; init; }
+
+        public string? CategoryId { get; init; }
+
+        public string? DefaultLanguage { get; init; }
+
+        public string? Duration { get; init; }
+        
+        public string? Definition { get; init; }
+
+        public string? Caption { get; init; }
+
+        public bool LicensedContent { get; init; }
+
+        public string? UploadStatus { get; init; }
+
+        public ulong? ViewCount { get; init; }
+
+        public ulong? LikeCount { get; init; }
+
+        public ulong? FavoriteCount { get; init; }
+
+        public ulong? CommentCount { get; init; }
+    }
 }

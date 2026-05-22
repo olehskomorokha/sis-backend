@@ -6,5 +6,5 @@ Console.OutputEncoding = Encoding.UTF8;
 
 var model = Settings.LoadRequestModel();
 
-//await YouTubeApi.CollectUkrainianChannelsAsync(model);
+await YouTubeApi.CollectUkrainianChannelsAsync(model);
 await YouTubeApi.AddPlayListItemsAsync(model);
