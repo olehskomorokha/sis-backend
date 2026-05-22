@@ -15,7 +15,8 @@ using Elastic.Transport;
 var builder = WebApplication.CreateBuilder(args);
 
 var elasticUrl = builder.Configuration["ElasticsearchLocal:Url"];
-
+var esIndex = builder.Configuration["Elasticsearch:DefaultIndex"] ?? "influencers";
+var settings = new ElasticsearchClientSettings(new Uri(elasticUrl)).DefaultIndex(esIndex);
 builder.Services.AddSingleton(new ElasticsearchClient(
     new Uri(elasticUrl!)
 ));
@@ -50,7 +51,7 @@ builder.Services.AddScoped<IInfluencerRepository, InfluencerRepository>();
 builder.Services.AddScoped<IInfluencerRecommendationRepository, InfluencerRecommendationRepository>();
 builder.Services.AddScoped<IPostRepository, PostRepository>();
 builder.Services.AddScoped<ITagRepository, TagRepository>();
-
+builder.Services.AddScoped<IElasticsearchService, ElasticsearchService>();
 builder.Services.AddScoped<IClientService, ClientService>();
 builder.Services.AddScoped<IAudienceService, AudienceService>();
 builder.Services.AddScoped<IInfluencerService, InfluencerService>();
