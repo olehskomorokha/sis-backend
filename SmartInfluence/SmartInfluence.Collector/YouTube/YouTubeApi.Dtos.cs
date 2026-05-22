@@ -23,6 +23,7 @@ public static partial class YouTubeApi
         public ulong? ViewCount { get; init; }
 
         public string? ThumbnailUrl { get; init; }
+        public string? TopicCategories { get; init; }
         public DateTime IndexedAt { get; init; }
 
         public required string ChannelUrl { get; init; }

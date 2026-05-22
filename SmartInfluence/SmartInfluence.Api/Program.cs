@@ -14,22 +14,12 @@ using Elastic.Transport;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddSingleton(_ =>
-{
-    var esUrl = builder.Configuration["Elasticsearch:Url"]
-        ?? throw new InvalidOperationException("Missing configuration key 'Elasticsearch:Url'.");
-    var esIndex = builder.Configuration["Elasticsearch:DefaultIndex"] ?? "influencers";
-    var esApiKey = builder.Configuration["Elasticsearch:ApiKey"];
+var elasticUrl = builder.Configuration["ElasticsearchLocal:Url"];
 
-    var settings = new ElasticsearchClientSettings(new Uri(esUrl)).DefaultIndex(esIndex);
-    if (!string.IsNullOrWhiteSpace(esApiKey))
-    {
-        settings = settings.Authentication(new ApiKey(esApiKey));
-    }
-
-    return new ElasticsearchClient(settings);
-});
-
+builder.Services.AddSingleton(new ElasticsearchClient(
+    new Uri(elasticUrl!)
+));
+builder.Services.AddScoped<ElasticsearchService>();
 builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 

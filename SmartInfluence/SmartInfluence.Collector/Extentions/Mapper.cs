@@ -18,6 +18,7 @@ public class Mapper
             VideoCount = channel.Statistics?.VideoCount,
             SubscriberCount = channel.Statistics?.SubscriberCount,
             ViewCount = channel.Statistics?.ViewCount,
+            TopicCategories = string.Join(",", ExtractTopicCategories(channel.TopicDetails?.TopicCategories)),
             Statictics = new YouTubeApi.Statictics
             {
                 ViewCount = channel.Statistics?.ViewCount is > int.MaxValue

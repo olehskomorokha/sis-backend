@@ -12,7 +12,7 @@ public static partial class YouTubeApi
     {
         var collected = new Dictionary<string, UkrainianYouTubeBloggerDto>(StringComparer.OrdinalIgnoreCase);
         //var query = UkrainianChannelQueries[3];
-        var query = "Дім";
+        var query = "Музика";
         var searchRequest = model.Service.Search.List("snippet");
         searchRequest.Q = query;
         searchRequest.Type = "channel";
