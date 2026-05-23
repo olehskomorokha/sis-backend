@@ -98,9 +98,7 @@ public class InfluencerRecommendationService : IInfluencerRecommendationService
     {
         var authenticityGate = criteria.MaxFakeFollowersPercent;
         if (authenticityGate.HasValue &&
-            authenticityGate.Value > 0 &&
-            candidate.Audience != null &&
-            candidate.Audience.FakeFollowersPercent > authenticityGate.Value)
+            authenticityGate.Value > 0)
         {
             return null;
         }
@@ -112,15 +110,11 @@ public class InfluencerRecommendationService : IInfluencerRecommendationService
         }
 
         var topicScore = CalculateTopicScore(candidate, criteria);
-        var audienceScore = CalculateAudienceScore(candidate.Audience, criteria);
         var engagementScore = CalculateEngagementScore(candidate.Influencer);
-        var authenticityScore = CalculateAuthenticityScore(candidate.Audience, candidate.LatestScore);
         var brandFit = (topicScore * 0.7m) + (platformScore * 0.3m);
 
         var finalScore = (brandFit * 0.4m) +
-                         (audienceScore * 0.3m) +
-                         (engagementScore * 0.2m) +
-                         (authenticityScore * 0.1m);
+                         (engagementScore * 0.2m);
 
         if (finalScore <= 0.15m)
         {
@@ -135,7 +129,7 @@ public class InfluencerRecommendationService : IInfluencerRecommendationService
             Platform = candidate.Influencer.Platform,
             Country = candidate.Influencer.Country,
             Score = Math.Round(finalScore, 4),
-            Reason = BuildReason(candidate, criteria, topicScore, audienceScore, authenticityScore)
+            Reason = BuildReason(candidate, criteria, topicScore)
         };
     }
 
@@ -189,38 +183,6 @@ public class InfluencerRecommendationService : IInfluencerRecommendationService
         return (decimal)matches / requiredTerms.Count;
     }
 
-    private static decimal CalculateAudienceScore(Audience? audience, ProductCriteriaModel criteria)
-    {
-        if (audience == null)
-        {
-            return 0.35m;
-        }
-
-        var scores = new List<decimal>();
-
-        if (!string.IsNullOrWhiteSpace(criteria.TargetCountry))
-        {
-            var countryMatch = audience.TopCountries.Contains(criteria.TargetCountry, StringComparison.OrdinalIgnoreCase) ||
-                               string.Equals(criteria.TargetCountry, audience.Influencer?.Country, StringComparison.OrdinalIgnoreCase);
-            scores.Add(countryMatch ? 1m : 0m);
-        }
-
-        if (!string.IsNullOrWhiteSpace(criteria.TargetGender))
-        {
-            scores.Add(criteria.TargetGender.Equals("female", StringComparison.OrdinalIgnoreCase)
-                ? NormalizePercent(audience.FemalePercent)
-                : NormalizePercent(audience.MalePercent));
-        }
-
-        var hasAgeCriteria = criteria.AgeMin.GetValueOrDefault() > 0 || criteria.AgeMax.GetValueOrDefault() > 0;
-        if (hasAgeCriteria)
-        {
-            scores.Add(CalculateAgeScore(audience, criteria.AgeMin, criteria.AgeMax));
-        }
-
-        return scores.Count == 0 ? 0.6m : scores.Average();
-    }
-
     private static decimal CalculateEngagementScore(Influencers influencer)
     {
         var engagementRate = CalculateEngagementRate(influencer);
@@ -238,29 +200,10 @@ public class InfluencerRecommendationService : IInfluencerRecommendationService
         return weightedEngagement / influencer.FollowersCount;
     }
 
-    private static decimal CalculateAuthenticityScore(Audience? audience, InfluencerScore? score)
-    {
-        var values = new List<decimal>();
-
-        if (audience != null)
-        {
-            values.Add(1m - Math.Clamp(audience.FakeFollowersPercent / 100m, 0m, 1m));
-        }
-
-        if (score != null)
-        {
-            values.Add(NormalizeScore(score.ScoreAuthenticity));
-        }
-
-        return values.Count == 0 ? 0.5m : values.Average();
-    }
-
     private static string BuildReason(
         InfluencerRecommendationCandidateData candidate,
         ProductCriteriaModel criteria,
-        decimal topicScore,
-        decimal audienceScore,
-        decimal authenticityScore)
+        decimal topicScore)
     {
         var reasons = new List<string>();
 
@@ -268,17 +211,7 @@ public class InfluencerRecommendationService : IInfluencerRecommendationService
         {
             reasons.Add("content topics match the product niche");
         }
-
-        if (audienceScore >= 0.5m)
-        {
-            reasons.Add("audience profile is close to the target segment");
-        }
-
-        if (authenticityScore >= 0.6m && candidate.Audience != null)
-        {
-            reasons.Add($"fake followers {candidate.Audience.FakeFollowersPercent:0.##}%");
-        }
-
+        
         if (criteria.Platforms.Count > 0 &&
             criteria.Platforms.Any(x => string.Equals(x, candidate.Influencer.Platform, StringComparison.OrdinalIgnoreCase)))
         {
@@ -286,31 +219,6 @@ public class InfluencerRecommendationService : IInfluencerRecommendationService
         }
 
         return reasons.Count == 0 ? "matched by aggregated ranking signals" : string.Join("; ", reasons);
-    }
-
-    private static decimal CalculateAgeScore(Audience audience, int? ageMin, int? ageMax)
-    {
-        var targetMin = ageMin ?? 18;
-        var targetMax = ageMax ?? 44;
-
-        var buckets = new List<(int Min, int Max, decimal Value)>
-        {
-            (18, 24, NormalizePercent(audience.Age18_24)),
-            (25, 34, NormalizePercent(audience.Age25_34)),
-            (35, 44, NormalizePercent(audience.Age35_44))
-        };
-
-        var matched = buckets
-            .Where(bucket => bucket.Min <= targetMax && bucket.Max >= targetMin)
-            .Select(bucket => bucket.Value)
-            .ToList();
-
-        return matched.Count == 0 ? 0m : matched.Average();
-    }
-
-    private static decimal NormalizePercent(decimal value)
-    {
-        return Math.Clamp(value / 100m, 0m, 1m);
     }
 
     private static decimal NormalizeScore(decimal value)

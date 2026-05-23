@@ -36,8 +36,7 @@ public static class Settings
         {
             Service = youtubeService,
             Elasticsearch = elasticClient,
-            ElasticIndex = elasticIndex,
-            Count = int.TryParse(configuration["YouTube:CollectCount"], out var count) && count > 0 ? count : 10
+            ElasticIndex = elasticIndex
         };
 
         return RequestModel;

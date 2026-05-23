@@ -17,7 +17,7 @@ public static partial class YouTubeApi
         searchRequest.Q = query;
         searchRequest.Type = "channel";
         searchRequest.RegionCode = "UA";
-        searchRequest.MaxResults = Math.Min(50, model.Count);
+        searchRequest.MaxResults = 50;
         
         // пошук блогерів (Search.List)
         var searchResponse = await searchRequest.ExecuteAsync(model.CancellationToken);
@@ -33,11 +33,70 @@ public static partial class YouTubeApi
         var channelsResponse = await channelsRequest.ExecuteAsync(model.CancellationToken);
 
         return channelsResponse.Items.ToList();
-       
-       
     }
 
-    public static async Task AddPlayListItemsAsync(YouTubeRequestModel model)
+    public static async Task<List<string>> GetChannelPlayListItemsAsync(YouTubeRequestModel model, string channelId)
+    {
+        var result = new List<string>();
+        var cutoff = DateTimeOffset.UtcNow.AddMonths(-6);
+        string? pageToken = null;
+        do
+        {
+            var searchRequest = model.Service.PlaylistItems.List("snippet,contentDetails");
+            searchRequest.PlaylistId = StringConverter.ConvertChannelIdToPlaylistId(channelId);
+            searchRequest.MaxResults = 50;
+            searchRequest.PageToken = pageToken;
+
+            var searchResponse = await searchRequest.ExecuteAsync(model.CancellationToken);
+
+            foreach (var item in searchResponse.Items)
+            {
+                var publishedAt = item.ContentDetails?.VideoPublishedAtDateTimeOffset;
+
+                if (publishedAt is null)
+                {
+                    continue;
+                }
+
+                if (publishedAt < cutoff)
+                {
+                    return result;
+                }
+                var videoId = item.Snippet?.ResourceId?.VideoId;
+
+                result.Add(videoId);
+            }
+
+            pageToken = searchResponse.NextPageToken;
+            
+        } while (!string.IsNullOrWhiteSpace(pageToken));
+       
+        return result;
+    }
+
+    public static async Task<List<YouTubeApi.VideoDetailModel>> GetChannelVideoDetailsAsync(YouTubeRequestModel model, List<string> videoIds)
+    {
+        var result = new List<YouTubeApi.VideoDetailModel>();
+
+        foreach (var batch in videoIds.Chunk(50))
+        {
+            var videoRequest = model.Service.Videos.List(
+                "snippet,contentDetails,localizations,recordingDetails,statistics,status,topicDetails");
+
+            videoRequest.Id = string.Join(",", batch);
+
+            var videoResponse = await videoRequest.ExecuteAsync(model.CancellationToken);
+
+            foreach (var video in videoResponse.Items)
+            {
+                result.Add(Mapper.MapToVideoDetails(video));
+            }
+        }
+
+        return result;
+    }
+    
+    /*public static async Task AddPlayListItemsAsync(YouTubeRequestModel model)
     {
         var response = await model.Elasticsearch.SearchAsync<UkrainianYouTubeBloggerDto>(s => 
             s.Index(model.ElasticIndex)
@@ -112,6 +171,5 @@ public static partial class YouTubeApi
                 Console.WriteLine(ex.Message);
             }
         }
-    }
-    
+    }*/
 }

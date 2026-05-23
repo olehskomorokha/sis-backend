@@ -10,7 +10,6 @@ public class AppDbContext : DbContext
     {
     }
 
-    public DbSet<Audience> Audiences => Set<Audience>();
     public DbSet<Client> Clients => Set<Client>();
     public DbSet<ClientInfluencer> ClientInfluencers => Set<ClientInfluencer>();
     public DbSet<ContentAnalysis> ContentAnalyses => Set<ContentAnalysis>();
