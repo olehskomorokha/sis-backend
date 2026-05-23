@@ -14,22 +14,13 @@ using Elastic.Transport;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddSingleton(_ =>
-{
-    var esUrl = builder.Configuration["Elasticsearch:Url"]
-        ?? throw new InvalidOperationException("Missing configuration key 'Elasticsearch:Url'.");
-    var esIndex = builder.Configuration["Elasticsearch:DefaultIndex"] ?? "influencers";
-    var esApiKey = builder.Configuration["Elasticsearch:ApiKey"];
-
-    var settings = new ElasticsearchClientSettings(new Uri(esUrl)).DefaultIndex(esIndex);
-    if (!string.IsNullOrWhiteSpace(esApiKey))
-    {
-        settings = settings.Authentication(new ApiKey(esApiKey));
-    }
-
-    return new ElasticsearchClient(settings);
-});
-
+var elasticUrl = builder.Configuration["ElasticsearchLocal:Url"];
+var esIndex = builder.Configuration["Elasticsearch:DefaultIndex"] ?? "influencers";
+var settings = new ElasticsearchClientSettings(new Uri(elasticUrl)).DefaultIndex(esIndex);
+builder.Services.AddSingleton(new ElasticsearchClient(
+    new Uri(elasticUrl!)
+));
+builder.Services.AddScoped<ElasticsearchService>();
 builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 
@@ -60,7 +51,7 @@ builder.Services.AddScoped<IInfluencerRepository, InfluencerRepository>();
 builder.Services.AddScoped<IInfluencerRecommendationRepository, InfluencerRecommendationRepository>();
 builder.Services.AddScoped<IPostRepository, PostRepository>();
 builder.Services.AddScoped<ITagRepository, TagRepository>();
-
+builder.Services.AddScoped<IElasticsearchService, ElasticsearchService>();
 builder.Services.AddScoped<IClientService, ClientService>();
 builder.Services.AddScoped<IAudienceService, AudienceService>();
 builder.Services.AddScoped<IInfluencerService, InfluencerService>();

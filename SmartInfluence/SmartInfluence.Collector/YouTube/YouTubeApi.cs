@@ -1,3 +1,4 @@
+using Google.Apis.YouTube.v3.Data;
 using SmartInfluence.Collector.Extentions;
 
 namespace SmartInfluence.Collector.YouTube;
@@ -8,11 +9,10 @@ public static partial class YouTubeApi
         "travel vlog", "пляжі", "backpacking", "музика", "реп", "hiphop", "rock", "pop", "dj", "співак", "співачка", "концерти",
         "музичний блог", "українська музика", "cover", "beatmaker", "producer", "spotify", "music review", "бізнес", "підприємництво", "стартап", "маркетинг", "SMM", "digital marketing", "таргет", "реклама", "бренд", "продажі", "sales", "ecommerce", "dropshipping", "інвестиції", "криптовалюта", "bitcoin", "trading", "фінанси", "освіта", "навчання", "англійська", "математика", "історія", "наука", "physics", "chemistry", "біологія", "edtech", "курси", "саморозвиток", "психологія", "study", "університет", "frontend", "backend", "розваги", "гумор", "меми", "пранки", "реакції", "шоу", "комедія", "tiktok", "shorts", "вірусні відео", "funny", "vlog", "лайфстайл", "storytime", "challenge", "подкаст", "діти", "батьківство", "мама блог", "сімя", "baby", "parenting", "іграшки", "вагітність", "family vlog", "пологи", "mom life", "dad life", "тварини", "pets", "коти", "собаки", "ветеринар", "кінолог", "catlover", "doglover", "animal rescue", "pet care", "ферма", "фотографія", "відеозйомка", "монтаж", "cinematic", "camera", "sony", "canon", "drone", "відеограф", "фотограф", "content creator", "instagram", "reels", "lighting", "filmmaking", "політика", "новини", "журналістика", "війна", "Україна новини", "аналітика", "економіка", "волонтерство", "ЗСУ", "історія України", "telegram", "military", "нерухомість", "будівництво", "ремонт", "дизайн інтерєру", "інтерєр", "архітектура", "DIY", "меблі", "квартира", "будинок", "real estate", "renovation", "home design", "smart home", "Риболовля"];
 
-    public static async Task CollectUkrainianChannelsAsync(YouTubeRequestModel model)
+    public static async Task<List<Channel>> CollectUkrainianChannelsAsync(YouTubeRequestModel model)
     {
-        var collected = new Dictionary<string, UkrainianYouTubeBloggerDto>(StringComparer.OrdinalIgnoreCase);
         //var query = UkrainianChannelQueries[3];
-        var query = "Дім";
+        var query = "Футбол";
         var searchRequest = model.Service.Search.List("snippet");
         searchRequest.Q = query;
         searchRequest.Type = "channel";
@@ -21,7 +21,7 @@ public static partial class YouTubeApi
         
         // пошук блогерів (Search.List)
         var searchResponse = await searchRequest.ExecuteAsync(model.CancellationToken);
-        // дістаємо id канала для прдальшого пошуку
+        // дістаємо id каналу для подальшого пошуку
         var channelIds = searchResponse.Items?
             .Select(item => item.Snippet?.ChannelId)
             .Where(channelId => !string.IsNullOrWhiteSpace(channelId))
@@ -32,43 +32,9 @@ public static partial class YouTubeApi
         channelsRequest.Id = string.Join(",", channelIds ?? []);
         var channelsResponse = await channelsRequest.ExecuteAsync(model.CancellationToken);
 
-        foreach (var channel in channelsResponse.Items ?? [])
-        {
-            model.CancellationToken.ThrowIfCancellationRequested();
-
-            if (collected.Count >= model.Count)
-            {
-                break;
-            }
-
-            if (string.IsNullOrWhiteSpace(channel.Id) || collected.ContainsKey(channel.Id))
-            {
-                continue;
-            }
-
-            var dto = Mapper.MapToBloggerDto(channel);
-            collected[channel.Id] = dto;
-
-            await AddBloggerAsync(model, dto);
-        }
-        Console.WriteLine($"program finished");
-    }
-
-    private static async Task AddBloggerAsync(YouTubeRequestModel model, UkrainianYouTubeBloggerDto blogger)
-    {
-        var response = await model.Elasticsearch.IndexAsync(
-            blogger,
-            descriptor => descriptor.Index(model.ElasticIndex).Id("youtube" + blogger.ChannelId),
-            model.CancellationToken);
-
-        if (response.IsValidResponse)
-        {
-            Console.WriteLine($"Indexed in Elasticsearch: {blogger.ChannelId} ({blogger.Title})");
-            return;
-        }
-
-        Console.WriteLine($"Elasticsearch index failed: {blogger.ChannelId}");
-        Console.WriteLine(response.ElasticsearchServerError?.Error?.Reason);
+        return channelsResponse.Items.ToList();
+       
+       
     }
 
     public static async Task AddPlayListItemsAsync(YouTubeRequestModel model)
@@ -95,8 +61,6 @@ public static partial class YouTubeApi
                 continue;
             }
 
-            Console.WriteLine($"{channel.ChannelId} --> {channel.Uploads}");
-
             try
             {
                 var searchRequest = model.Service.PlaylistItems.List("snippet,contentDetails");
@@ -109,7 +73,6 @@ public static partial class YouTubeApi
                     .Where(videoId => !string.IsNullOrWhiteSpace(videoId))
                     .ToArray() ?? [];
 
-                Console.WriteLine($"{channel.ChannelId} --> {channel.Uploads} --> {string.Join(", ", videoIds)}");
 
                 foreach (var item in searchResponse.Items ?? [])
                 {

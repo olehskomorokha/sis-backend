@@ -13,7 +13,8 @@ public class InfluencerController : ControllerBase
 
     public InfluencerController(
         IInfluencerService influencerService,
-        IInfluencerRecommendationService influencerRecommendationService)
+        IInfluencerRecommendationService influencerRecommendationService
+        )
     {
         _influencerService = influencerService;
         _influencerRecommendationService = influencerRecommendationService;

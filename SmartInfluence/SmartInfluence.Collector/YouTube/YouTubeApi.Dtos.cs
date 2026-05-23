@@ -4,38 +4,51 @@ public static partial class YouTubeApi
 {
     public sealed record UkrainianYouTubeBloggerDto
     {
+        public string? Source { get; init; }
+        public string? CountryCode { get; init; }
         public required string ChannelId { get; init; }
+        public required string ChannelUrl { get; init; }
+        public required string Name { get; init; }
+        
 
-        public required string Title { get; init; }
+        public string? NickName { get; init; }
 
         public string? Description { get; init; }
-
-        public string? CustomUrl { get; init; }
-
-        public string? PublishedAt { get; init; }
-
-        public string? Country { get; init; }
-
-        public ulong? VideoCount { get; init; }
-
-        public ulong? SubscriberCount { get; init; }
-
-        public ulong? ViewCount { get; init; }
-
-        public string? ThumbnailUrl { get; init; }
+        
+        public string? AvatarUrl { get; init; }
         public DateTime IndexedAt { get; init; }
-
-        public required string ChannelUrl { get; init; }
+        public Fields Fields { get; init; }
         public required string Uploads  { get; init; }
+        public required Interests Interests { get; init; }
         public required Statictics Statictics { get; init; }
     }
 
+    public sealed record Fields
+    {
+        public DateTime? PublishedAt { get; init; }
+        public int? Posts { get; init; }
+        public int? SubscriberCount { get; init; }
+        public int? ViewCount { get; init; }
+        public Interests Interests { get; init; }
+    }
+
+    public sealed record Interests
+    {
+        public string[] ChannelTags { get; init; }
+        public string[] VideoTags { get; init; }
+    }
     public sealed record Statictics
     {
-        public int ViewCount { get; init; }
-        public ulong? SubscriberCount { get; init; }
-        public bool HiddenSubscriberCount { get; init; }
-        public ulong? VideoCount { get; init; }
+        public PerHalfYear  PerHalfYear { get; init; }
+    }
+
+    public sealed record PerHalfYear
+    {
+        public int VideoCount { get; init; }
+        public int PostPerDay { get; init; }
+        public int AvgLike { get; init; }
+        public int AvgView { get; init; }
+        public int AvgComment { get; init; }
     }
 
     public sealed record PlayListItems
