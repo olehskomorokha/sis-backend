@@ -8,10 +8,17 @@ public class Mapper
     {
         return new YouTubeApi.UkrainianYouTubeBloggerDto
         {
+            Source = "youtube.com",
             ChannelId = channel.Id!,
-            Title = channel.Snippet?.Title ?? string.Empty,
+            ChannelUrl = $"https://www.youtube.com/channel/{channel.Id}",
+            Name = channel.Snippet?.Title ?? string.Empty,
+            NickName = channel.Snippet?.CustomUrl,
             Description = channel.Snippet?.Description,
-            CustomUrl = channel.Snippet?.CustomUrl,
+            AvatarUrl = channel.Snippet?.Thumbnails?.High?.Url
+                           ?? channel.Snippet?.Thumbnails?.Medium?.Url
+                           ?? channel.Snippet?.Thumbnails?.Default__?.Url,
+            IndexedAt = DateTime.UtcNow,
+           
             PublishedAt = GetPublishedAtOrEmpty(channel.Snippet),
             Country = channel.Snippet?.Country,
             Uploads = channel.ContentDetails?.RelatedPlaylists?.Uploads ?? string.Empty,
@@ -28,11 +35,9 @@ public class Mapper
                 HiddenSubscriberCount = channel.Statistics?.HiddenSubscriberCount ?? false,
                 VideoCount = channel.Statistics?.VideoCount
             },
-            IndexedAt = DateTime.UtcNow,
-            ThumbnailUrl = channel.Snippet?.Thumbnails?.High?.Url
-                           ?? channel.Snippet?.Thumbnails?.Medium?.Url
-                           ?? channel.Snippet?.Thumbnails?.Default__?.Url,
-            ChannelUrl = $"https://www.youtube.com/channel/{channel.Id}"
+            
+            
+            
         };
     }
 

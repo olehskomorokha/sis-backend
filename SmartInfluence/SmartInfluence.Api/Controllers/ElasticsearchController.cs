@@ -16,10 +16,21 @@ public class ElasticsearchController : ControllerBase
         _elasticserchService = elasticserchService;
     }
 
-    [HttpGet]
+    [HttpGet("GetById/{id}")]
+    public async Task<object> GetById(string id)
+    {
+        return await _elasticserchService.GetById(id);
+    }
+    [HttpGet("bloggerTags")]
     public async Task<List<string>> GetAllBloggerTags()
     {
         return await _elasticserchService.GetAllBloggerTags();
+    }
+    
+    [HttpGet("VideoDetailsByChannel/{channelId}")]
+    public async Task<List<VideoDetailModel>> GetAllVideoDetailsByChannel(string channelId)
+    {
+        return await _elasticserchService.GetAllVideoDetailsByChannel(channelId);
     }
 
     [HttpPost("filters")]
@@ -27,4 +38,5 @@ public class ElasticsearchController : ControllerBase
     {
         return await _elasticserchService.GetByFilters(model);
     }
+    
 }

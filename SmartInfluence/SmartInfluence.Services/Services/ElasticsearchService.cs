@@ -9,6 +9,7 @@ namespace SmartInfluence.Services.Services;
 public class ElasticsearchService : IElasticsearchService
 {
     private const string BloggerIndex = "blogger";
+    private const string VideoDetailIndex = "youtube-video-details";
 
     private readonly ElasticsearchClient _client;
     
@@ -62,13 +63,49 @@ public class ElasticsearchService : IElasticsearchService
         var hasTags = tags.Count > 0;
         var hasFilters = hasCountry || hasFollowersRange || hasTags;
 
-        var tagWildcardFilters = tags
-            .Select<string, Action<QueryDescriptor<BloggerDocument>>>(tag =>
-                q => q.Wildcard(w => w
-                    .Field("topicCategories")
-                    .Value($"*{tag}*")
-                    .CaseInsensitive(true)))
-            .ToArray();
+        var filters = new List<Action<QueryDescriptor<BloggerDocument>>>();
+
+        if (hasCountry)
+        {
+            filters.Add(q => q.Term(t => t
+                .Field("country")
+                .Value(model.Country!)
+                .CaseInsensitive(true)));
+        }
+
+        if (hasFollowersRange)
+        {
+            filters.Add(q => q.Range(r => r
+                .NumberRange(nr =>
+                {
+                    nr.Field("subscriberCount");
+
+                    if (model.MinFollowersCount.HasValue)
+                    {
+                        nr.Gte(model.MinFollowersCount.Value);
+                    }
+
+                    if (model.MaxFollowersCount.HasValue)
+                    {
+                        nr.Lte(model.MaxFollowersCount.Value);
+                    }
+                })));
+        }
+
+        if (hasTags)
+        {
+            var tagWildcardFilters = tags
+                .Select<string, Action<QueryDescriptor<BloggerDocument>>>(tag =>
+                    q => q.Wildcard(w => w
+                        .Field("topicCategories")
+                        .Value($"*{tag}*")
+                        .CaseInsensitive(true)))
+                .ToArray();
+
+            filters.Add(q => q.Bool(bb => bb
+                .Should(tagWildcardFilters)
+                .MinimumShouldMatch(1)));
+        }
 
         var response = await _client.SearchAsync<BloggerDocument>(s =>
         {
@@ -80,41 +117,7 @@ public class ElasticsearchService : IElasticsearchService
                 return;
             }
 
-            s.Query(q => q.Bool(b =>
-            {
-                if (hasCountry)
-                {
-                    b.Filter(f => f.Term(t => t
-                        .Field("country")
-                        .Value(model.Country!)
-                        .CaseInsensitive(true)));
-                }
-
-                if (hasFollowersRange)
-                {
-                    b.Filter(f => f.Range(r => r
-                        .NumberRange(nr =>
-                        {
-                            nr.Field("subscriberCount");
-                            if (model.MinFollowersCount.HasValue)
-                            {
-                                nr.Gte(model.MinFollowersCount.Value);
-                            }
-
-                            if (model.MaxFollowersCount.HasValue)
-                            {
-                                nr.Lte(model.MaxFollowersCount.Value);
-                            }
-                        })));
-                }
-
-                if (hasTags)
-                {
-                    b.Filter(f => f.Bool(bb => bb
-                        .Should(tagWildcardFilters)
-                        .MinimumShouldMatch(1)));
-                }
-            }));
+            s.Query(q => q.Bool(b => b.Filter(filters.ToArray())));
         });
 
         if (!response.IsValidResponse)
@@ -127,7 +130,33 @@ public class ElasticsearchService : IElasticsearchService
             .ToList();
     }
 
-    
+    public async Task<object> GetById(string id)
+    {
+        var response = await _client.SearchAsync<object>(s => s
+            .Index("blogger")
+            .Size(1)
+            .Query(q => q
+                .Term(t => t
+                    .Field("channelId.keyword")
+                    .Value(id)
+                )
+            )
+        );
 
-    
+        var blogger = response.Documents.FirstOrDefault();
+        return blogger;
+    }
+    public async Task<List<VideoDetailModel>> GetAllVideoDetailsByChannel(string channelId)
+    {
+        var response = await _client.SearchAsync<VideoDetailModel>(s => s
+            .Index("youtube-video-details")
+            .Query(q => q
+                .Term(t => t
+                    .Field("channelId.keyword")
+                    .Value("UCuf5y77EhiKWNxzn9Y_Wa_Q"))
+            )
+        );
+        
+        return response.Documents.ToList();
+    }
 }

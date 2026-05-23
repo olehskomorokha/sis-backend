@@ -7,7 +7,7 @@ public class InfluencerSearchModel
     public string Description { get; set; }
     public string PublishedAt { get; set; }
     public int? VideoCount { get; set; }
-    public int? SubscriptionCount { get; set; }
+    public int? SubscriberCount { get; set; }
     public int? ViewCount { get; set; }
     public string channelUrl { get; set; }
     public string Tags { get; set; }
