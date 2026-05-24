@@ -15,7 +15,6 @@ public static class ClientMapper
             Budget = client.Budget,
             TargetCountry = client.TargetCountry,
             TargetAudience = client.TargetAudience,
-            Goals = client.Goals,
             CreatedAt = client.CreatedAt
         };
     }

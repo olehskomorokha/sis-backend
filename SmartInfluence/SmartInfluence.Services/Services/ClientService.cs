@@ -124,11 +124,7 @@ public class ClientService : IClientService
         {
             client.TargetAudience = model.TargetAudience;
         }
-
-        if (!string.IsNullOrWhiteSpace(model.Goals))
-        {
-            client.Goals = model.Goals;
-        }
+        
     }
 
     private string GetAccessToken(int userId, string email)

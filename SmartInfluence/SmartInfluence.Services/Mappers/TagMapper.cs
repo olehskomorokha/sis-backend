@@ -10,7 +10,8 @@ public static class TagMapper
         return new TagResponseModel
         {
             Id = tag.Id,
-            Name = tag.Name
+            ChannelTagName= tag.ChannelTagName,
+            VideosTagName= tag.VideosTagName
         };
     }
 }

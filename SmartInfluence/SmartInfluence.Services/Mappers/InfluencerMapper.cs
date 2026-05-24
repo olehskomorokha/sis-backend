@@ -10,18 +10,16 @@ public static class InfluencerMapper
         return new InfluencerResponseModel
         {
             Id = influencer.Id,
-            UserName = influencer.UserName,
-            FullName = influencer.FullName,
             Platform = influencer.Platform,
-            Bio = influencer.Bio,
+            Description = influencer.Description,
             Country = influencer.Country,
             Lenguage = influencer.Lenguage,
             FollowersCount = influencer.FollowersCount,
-            FollowingCount = influencer.FollowingCount,
             PostsCount = influencer.PostsCount,
             AvgViews = influencer.AvgViews,
             AvgLikes = influencer.AvgLikes,
-            AvgComments = influencer.AvgComments
+            AvgComments = influencer.AvgComments,
+            
         };
     }
 }
