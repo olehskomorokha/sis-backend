@@ -24,10 +24,10 @@ public class StatisticsCalculator
         return new YouTubeApi.PerHalfYear
         {
             VideoCount = videoCount,
-            PostPerDay = (int)Math.Round(videoCount / 182.5),
+            PostPerDay = (float)Math.Round(videoCount / 182.5, 3),
             AvgView = (int)videos.Average(x => (double)(x.ViewCount ?? 0)),
             AvgLike = (int)videos.Average(x => (double)(x.LikeCount ?? 0)),
-            AvgComment = (int)videos.Average(x => (double)(x.CommentCount ?? 0))
+            AvgComment = (int)videos.Average(x => (double)(x.CommentCount ?? 0)),
         };
     }
 }

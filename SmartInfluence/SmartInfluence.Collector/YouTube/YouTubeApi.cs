@@ -9,13 +9,15 @@ public static partial class YouTubeApi
         "travel vlog", "пляжі", "backpacking", "музика", "реп", "hiphop", "rock", "pop", "dj", "співак", "співачка", "концерти",
         "музичний блог", "українська музика", "cover", "beatmaker", "producer", "spotify", "music review", "бізнес", "підприємництво", "стартап", "маркетинг", "SMM", "digital marketing", "таргет", "реклама", "бренд", "продажі", "sales", "ecommerce", "dropshipping", "інвестиції", "криптовалюта", "bitcoin", "trading", "фінанси", "освіта", "навчання", "англійська", "математика", "історія", "наука", "physics", "chemistry", "біологія", "edtech", "курси", "саморозвиток", "психологія", "study", "університет", "frontend", "backend", "розваги", "гумор", "меми", "пранки", "реакції", "шоу", "комедія", "tiktok", "shorts", "вірусні відео", "funny", "vlog", "лайфстайл", "storytime", "challenge", "подкаст", "діти", "батьківство", "мама блог", "сімя", "baby", "parenting", "іграшки", "вагітність", "family vlog", "пологи", "mom life", "dad life", "тварини", "pets", "коти", "собаки", "ветеринар", "кінолог", "catlover", "doglover", "animal rescue", "pet care", "ферма", "фотографія", "відеозйомка", "монтаж", "cinematic", "camera", "sony", "canon", "drone", "відеограф", "фотограф", "content creator", "instagram", "reels", "lighting", "filmmaking", "політика", "новини", "журналістика", "війна", "Україна новини", "аналітика", "економіка", "волонтерство", "ЗСУ", "історія України", "telegram", "military", "нерухомість", "будівництво", "ремонт", "дизайн інтерєру", "інтерєр", "архітектура", "DIY", "меблі", "квартира", "будинок", "real estate", "renovation", "home design", "smart home", "Риболовля"];
 
+    
     public static async Task<List<Channel>> CollectUkrainianChannelsAsync(YouTubeRequestModel model)
     {
         //var query = UkrainianChannelQueries[3];
-        var query = "Футбол";
+        var query = "футбол";
         var searchRequest = model.Service.Search.List("snippet");
         searchRequest.Q = query;
-        searchRequest.Type = "channel";
+        searchRequest.RelevanceLanguage = "uk";
+        searchRequest.Type = "video";
         searchRequest.RegionCode = "UA";
         searchRequest.MaxResults = 50;
         
@@ -95,81 +97,20 @@ public static partial class YouTubeApi
 
         return result;
     }
-    
-    /*public static async Task AddPlayListItemsAsync(YouTubeRequestModel model)
+    public static async Task<List<string>> GetAllCategories(YouTubeRequestModel model)
     {
-        var response = await model.Elasticsearch.SearchAsync<UkrainianYouTubeBloggerDto>(s => 
-            s.Index(model.ElasticIndex)
-            .Size(50)
-            .Sort(sort => sort.Field(f => f.IndexedAt, fieldSort => fieldSort.Order(Elastic.Clients.Elasticsearch.SortOrder.Desc))));
-        var channelsToProcess = response.Documents
-            .Where(x => !string.IsNullOrWhiteSpace(x.ChannelId) && !string.IsNullOrWhiteSpace(x.Uploads))
-            .Select(x => new
-            {
-                x.ChannelId,
-                x.Uploads
-            })
-            .ToList();
-        
-        foreach (var channel in channelsToProcess)
+        var categoriesList = new List<string>();
+        var request = model.Service.VideoCategories.List("snippet");
+        request.RegionCode = "UA";
+        request.Hl = "uk";
+
+        var response = await request.ExecuteAsync();
+
+        foreach (var category in response.Items)
         {
-            model.CancellationToken.ThrowIfCancellationRequested();
-
-            if (string.IsNullOrWhiteSpace(channel.Uploads))
-            {
-                continue;
-            }
-
-            try
-            {
-                var searchRequest = model.Service.PlaylistItems.List("snippet,contentDetails");
-                searchRequest.PlaylistId = channel.Uploads;
-                searchRequest.MaxResults = 50;
-
-                var searchResponse = await searchRequest.ExecuteAsync(model.CancellationToken);
-                var videoIds = searchResponse.Items?
-                    .Select(item => item.Snippet?.ResourceId?.VideoId)
-                    .Where(videoId => !string.IsNullOrWhiteSpace(videoId))
-                    .ToArray() ?? [];
-
-
-                foreach (var item in searchResponse.Items ?? [])
-                {
-                    var dto = Mapper.MapToPlayListItems(item);
-
-                    if (string.IsNullOrWhiteSpace(dto.VideoId))
-                    {
-                        continue;
-                    }
-
-                    var videoId = dto.VideoId;
-
-                    await model.Elasticsearch.IndexAsync(
-                        dto,
-                        d => d.Index("playlist-items").Id("UploadId:" + channel.Uploads + "-" + videoId),
-                        model.CancellationToken);
-
-                    var videoRequest = model.Service.Videos.List("snippet,contentDetails,localizations,recordingDetails,statistics,status,topicDetails");
-                    videoRequest.Id = videoId;
-
-                    var videoResponse = await videoRequest.ExecuteAsync(model.CancellationToken);
-
-                    foreach (var video in videoResponse.Items ?? [])
-                    {
-                        var videoDto = Mapper.MapToVideoDetails(video);
-
-                        await model.Elasticsearch.IndexAsync(
-                            videoDto,
-                            d => d.Index("youtube-video-details").Id(videoDto.VideoId),
-                            model.CancellationToken);
-                    }
-                }
-            }
-            catch (Google.GoogleApiException ex)
-            {
-                Console.WriteLine($"Playlist failed: {channel.ChannelId} --> {channel.Uploads}");
-                Console.WriteLine(ex.Message);
-            }
+            Console.WriteLine($"{category.Id} - {category.Snippet.Title}");
+            categoriesList.Add(category.Snippet.Title);
         }
-    }*/
+        return  categoriesList;
+    }
 }

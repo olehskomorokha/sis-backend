@@ -9,6 +9,8 @@ public class Mapper
         var interests = InterestsCalculator.Calculate(channel, videos);
         var fields = FieldsCalculator.Calculate(channel, interests);
         var perHalfYear = StatisticsCalculator.CalculatePerHalfYear(videos);
+        var averageLikes = videos.Count == 0 ? 0 : videos.Average(x => (double)(x.LikeCount ?? 0));
+        var averageComments = videos.Count == 0 ? 0 : videos.Average(x => (double)(x.CommentCount ?? 0));
 
         return new YouTubeApi.UkrainianYouTubeBloggerDto
         {
@@ -27,23 +29,10 @@ public class Mapper
             Interests = interests,
             Statictics = new YouTubeApi.Statictics()
             {
+                EngagementRate = CalculateEngagementRate(averageLikes, averageComments * 2, channel.Statistics?.SubscriberCount),
                 PerHalfYear = perHalfYear
             }
             
-        };
-    }
-
-    public static YouTubeApi.PlayListItemsModel MapToPlayListItems(Google.Apis.YouTube.v3.Data.PlaylistItem model)
-    {
-        return new YouTubeApi.PlayListItemsModel()
-        {
-            VideoId = model.Snippet.ResourceId.VideoId,
-            PublishedAt = model.Snippet.PublishedAtRaw,
-            ChannelId = model.Snippet.ChannelId,
-            PlaylistId = model.Snippet.PlaylistId,
-            Title = model.Snippet.Title,
-            Description = model.Snippet.Description,
-            ChannelTitle = model.Snippet.ChannelTitle
         };
     }
 
@@ -127,4 +116,15 @@ public class Mapper
         var segment = uri.Segments.LastOrDefault()?.Trim('/');
         return string.IsNullOrWhiteSpace(segment) ? null : Uri.UnescapeDataString(segment);
     }
+
+    private static float CalculateEngagementRate(double averageLikes, double averageComments, ulong? subscriberCount)
+    {
+        if (!subscriberCount.HasValue || subscriberCount.Value == 0)
+        {
+            return 0;
+        }
+
+        return (float)((averageLikes + 2 * averageComments) / subscriberCount.Value);
+    }
+   
 }

@@ -4,7 +4,6 @@ using SmartInfluence.Collector.YouTube;
 
 Console.OutputEncoding = Encoding.UTF8;
 
-var collected = new Dictionary<string, YouTubeApi.UkrainianYouTubeBloggerDto>(StringComparer.OrdinalIgnoreCase);
 var model = Settings.LoadRequestModel();
 
 var channels = await YouTubeApi.CollectUkrainianChannelsAsync(model);
@@ -16,3 +15,4 @@ foreach (var channel in channels)
     var mappedBlogger = Mapper.MapToBloggerDto(channel, videoDetails);
     await YouTubeElasticService.AddBloggerAsync(model, mappedBlogger);
 }
+

@@ -34,29 +34,23 @@ public static partial class YouTubeApi
     }
     public sealed record Statictics
     {
+        
+        public float EngagementRate { get; init; }
         public PerHalfYear  PerHalfYear { get; init; }
+        
     }
 
     public sealed record PerHalfYear
     {
         public int VideoCount { get; init; }
-        public int PostPerDay { get; init; }
+        public float PostPerDay { get; init; }
         public int AvgLike { get; init; }
         public int AvgView { get; init; }
         public int AvgComment { get; init; }
+        
+        
     }
-
-    public sealed record PlayListItemsModel
-    {
-        public string? VideoId { get; init; }
-        public string? PublishedAt { get; init; }
-        public string? PlaylistId { get; init; }
-        public string? ChannelId { get; init; }
-        public string? Title { get; init; }
-        public string? Description { get; init; }
-        public string? ChannelTitle { get; init; }
-    }
-
+    
     public sealed record VideoDetailModel
     {
         public required string VideoId { get; init; }
