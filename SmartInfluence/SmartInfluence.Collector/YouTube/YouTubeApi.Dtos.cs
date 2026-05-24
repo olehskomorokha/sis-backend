@@ -9,18 +9,13 @@ public static partial class YouTubeApi
         public required string ChannelId { get; init; }
         public required string ChannelUrl { get; init; }
         public required string Name { get; init; }
-        
-
         public string? NickName { get; init; }
-
         public string? Description { get; init; }
-        
         public string? AvatarUrl { get; init; }
         public DateTime IndexedAt { get; init; }
         public Fields Fields { get; init; }
-        public required string Uploads  { get; init; }
-        public required Interests Interests { get; init; }
-        public required Statictics Statictics { get; init; }
+        public Interests Interests { get; init; }
+        public Statictics Statictics { get; init; }
     }
 
     public sealed record Fields
@@ -39,30 +34,24 @@ public static partial class YouTubeApi
     }
     public sealed record Statictics
     {
+        
+        public float EngagementRate { get; init; }
         public PerHalfYear  PerHalfYear { get; init; }
+        
     }
 
     public sealed record PerHalfYear
     {
         public int VideoCount { get; init; }
-        public int PostPerDay { get; init; }
+        public float PostPerDay { get; init; }
         public int AvgLike { get; init; }
         public int AvgView { get; init; }
         public int AvgComment { get; init; }
+        
+        
     }
-
-    public sealed record PlayListItems
-    {
-        public string? VideoId { get; init; }
-        public string? PublishedAt { get; init; }
-        public string? PlaylistId { get; init; }
-        public string? ChannelId { get; init; }
-        public string? Title { get; init; }
-        public string? Description { get; init; }
-        public string? ChannelTitle { get; init; }
-    }
-
-    public sealed record VideoDetails
+    
+    public sealed record VideoDetailModel
     {
         public required string VideoId { get; init; }
 

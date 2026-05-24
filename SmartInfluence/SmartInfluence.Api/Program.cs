@@ -46,14 +46,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 
 builder.Services.AddScoped<IClientRepository, ClientRepository>();
-builder.Services.AddScoped<IAudienceRepository, AudienceRepository>();
 builder.Services.AddScoped<IInfluencerRepository, InfluencerRepository>();
 builder.Services.AddScoped<IInfluencerRecommendationRepository, InfluencerRecommendationRepository>();
 builder.Services.AddScoped<IPostRepository, PostRepository>();
 builder.Services.AddScoped<ITagRepository, TagRepository>();
 builder.Services.AddScoped<IElasticsearchService, ElasticsearchService>();
 builder.Services.AddScoped<IClientService, ClientService>();
-builder.Services.AddScoped<IAudienceService, AudienceService>();
 builder.Services.AddScoped<IInfluencerService, InfluencerService>();
 builder.Services.AddScoped<IInfluencerRecommendationService, InfluencerRecommendationService>();
 builder.Services.AddScoped<IPostService, PostService>();

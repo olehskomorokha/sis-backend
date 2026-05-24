@@ -10,7 +10,5 @@ public class YouTubeRequestModel
 
     public required string ElasticIndex { get; init; }
 
-    public int Count { get; init; } = 50;
-
     public CancellationToken CancellationToken { get; init; }
 }

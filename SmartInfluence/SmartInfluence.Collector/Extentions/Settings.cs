@@ -20,7 +20,7 @@ public static class Settings
         var youtubeApiKey = configuration["YouTube:ApiKey"];
 
         var elasticUrl = configuration["ElasticsearchLocal:Url"]!;
-        var elasticIndex = configuration["ElasticsearchLocal:DefaultIndex"] ?? "influencers";
+        var elasticIndex = configuration["ElasticsearchLocal:DefaultIndex"] ?? "youtube";
 
         var elasticClient = new ElasticsearchClient(
             new ElasticsearchClientSettings(new Uri(elasticUrl))
@@ -36,8 +36,7 @@ public static class Settings
         {
             Service = youtubeService,
             Elasticsearch = elasticClient,
-            ElasticIndex = elasticIndex,
-            Count = int.TryParse(configuration["YouTube:CollectCount"], out var count) && count > 0 ? count : 10
+            ElasticIndex = elasticIndex
         };
 
         return RequestModel;

@@ -16,7 +16,6 @@ public class InfluencerRecommendationRepository : IInfluencerRecommendationRepos
     public async Task<List<InfluencerRecommendationCandidateData>> GetCandidatesAsync()
     {
         var influencers = await _dbContext.Influencers.AsNoTracking().ToListAsync();
-        var audiences = await _dbContext.Audiences.AsNoTracking().ToDictionaryAsync(x => x.InfluencerId);
         var latestScores = await _dbContext.InfluencerScores.AsNoTracking()
             .GroupBy(x => x.InfluencerId)
             .Select(group => group.OrderByDescending(x => x.CalculatedAt).First())
@@ -50,7 +49,6 @@ public class InfluencerRecommendationRepository : IInfluencerRecommendationRepos
         return influencers.Select(influencer => new InfluencerRecommendationCandidateData
         {
             Influencer = influencer,
-            Audience = audiences.GetValueOrDefault(influencer.Id),
             LatestScore = latestScores.GetValueOrDefault(influencer.Id),
             Tags = tagLookup.GetValueOrDefault(influencer.Id, []),
             Topics = topicLookup.GetValueOrDefault(influencer.Id, [])

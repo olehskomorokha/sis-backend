@@ -4,11 +4,18 @@ namespace SmartInfluence.Collector.Extentions;
 
 public class Mapper
 {
-    public static YouTubeApi.UkrainianYouTubeBloggerDto MapToBloggerDto(Google.Apis.YouTube.v3.Data.Channel channel)
+    public static YouTubeApi.UkrainianYouTubeBloggerDto MapToBloggerDto(Google.Apis.YouTube.v3.Data.Channel channel, List<YouTubeApi.VideoDetailModel> videos)
     {
+        var interests = InterestsCalculator.Calculate(channel, videos);
+        var fields = FieldsCalculator.Calculate(channel, interests);
+        var perHalfYear = StatisticsCalculator.CalculatePerHalfYear(videos);
+        var averageLikes = videos.Count == 0 ? 0 : videos.Average(x => (double)(x.LikeCount ?? 0));
+        var averageComments = videos.Count == 0 ? 0 : videos.Average(x => (double)(x.CommentCount ?? 0));
+
         return new YouTubeApi.UkrainianYouTubeBloggerDto
         {
             Source = "youtube.com",
+            CountryCode = channel.Snippet?.Country,
             ChannelId = channel.Id!,
             ChannelUrl = $"https://www.youtube.com/channel/{channel.Id}",
             Name = channel.Snippet?.Title ?? string.Empty,
@@ -18,46 +25,20 @@ public class Mapper
                            ?? channel.Snippet?.Thumbnails?.Medium?.Url
                            ?? channel.Snippet?.Thumbnails?.Default__?.Url,
             IndexedAt = DateTime.UtcNow,
-           
-            PublishedAt = GetPublishedAtOrEmpty(channel.Snippet),
-            Country = channel.Snippet?.Country,
-            Uploads = channel.ContentDetails?.RelatedPlaylists?.Uploads ?? string.Empty,
-            VideoCount = channel.Statistics?.VideoCount,
-            SubscriberCount = channel.Statistics?.SubscriberCount,
-            ViewCount = channel.Statistics?.ViewCount,
-            TopicCategories = string.Join(",", ExtractTopicCategories(channel.TopicDetails?.TopicCategories)),
-            Statictics = new YouTubeApi.Statictics
+            Fields = fields,
+            Interests = interests,
+            Statictics = new YouTubeApi.Statictics()
             {
-                ViewCount = channel.Statistics?.ViewCount is > int.MaxValue
-                    ? int.MaxValue
-                    : (int)(channel.Statistics?.ViewCount ?? 0),
-                SubscriberCount = channel.Statistics?.SubscriberCount,
-                HiddenSubscriberCount = channel.Statistics?.HiddenSubscriberCount ?? false,
-                VideoCount = channel.Statistics?.VideoCount
-            },
-            
-            
+                EngagementRate = CalculateEngagementRate(averageLikes, averageComments * 2, channel.Statistics?.SubscriberCount),
+                PerHalfYear = perHalfYear
+            }
             
         };
     }
 
-    public static YouTubeApi.PlayListItems MapToPlayListItems(Google.Apis.YouTube.v3.Data.PlaylistItem model)
+    public static YouTubeApi.VideoDetailModel MapToVideoDetails(Google.Apis.YouTube.v3.Data.Video video)
     {
-        return new YouTubeApi.PlayListItems()
-        {
-            VideoId = model.Snippet.ResourceId.VideoId,
-            PublishedAt = model.Snippet.PublishedAtRaw,
-            ChannelId = model.Snippet.ChannelId,
-            PlaylistId = model.Snippet.PlaylistId,
-            Title = model.Snippet.Title,
-            Description = model.Snippet.Description,
-            ChannelTitle = model.Snippet.ChannelTitle
-        };
-    }
-
-    public static YouTubeApi.VideoDetails MapToVideoDetails(Google.Apis.YouTube.v3.Data.Video video)
-    {
-        return new YouTubeApi.VideoDetails
+        return new YouTubeApi.VideoDetailModel
         {
             VideoId = video.Id ?? string.Empty,
             ChannelId = video.Snippet?.ChannelId,
@@ -80,22 +61,6 @@ public class Mapper
             FavoriteCount = video.Statistics?.FavoriteCount,
             CommentCount = video.Statistics?.CommentCount
         };
-    }
-    private static string GetPublishedAtOrEmpty(Google.Apis.YouTube.v3.Data.ChannelSnippet? snippet)
-    {
-        if (snippet is null)
-        {
-            return string.Empty;
-        }
-
-        try
-        {
-            return snippet.PublishedAtDateTimeOffset?.ToString("O") ?? string.Empty;
-        }
-        catch (FormatException)
-        {
-            return string.Empty;
-        }
     }
     private static string GetPublishedAtOrEmpty(Google.Apis.YouTube.v3.Data.VideoSnippet? snippet)
     {
@@ -151,4 +116,15 @@ public class Mapper
         var segment = uri.Segments.LastOrDefault()?.Trim('/');
         return string.IsNullOrWhiteSpace(segment) ? null : Uri.UnescapeDataString(segment);
     }
+
+    private static float CalculateEngagementRate(double averageLikes, double averageComments, ulong? subscriberCount)
+    {
+        if (!subscriberCount.HasValue || subscriberCount.Value == 0)
+        {
+            return 0;
+        }
+
+        return (float)((averageLikes + 2 * averageComments) / subscriberCount.Value);
+    }
+   
 }
