@@ -16,6 +16,7 @@ public class Mapper
         {
             Source = "youtube.com",
             CountryCode = channel.Snippet?.Country,
+            Language = channel.Snippet?.DefaultLanguage,
             ChannelId = channel.Id!,
             ChannelUrl = $"https://www.youtube.com/channel/{channel.Id}",
             Name = channel.Snippet?.Title ?? string.Empty,

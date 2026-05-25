@@ -1,10 +1,13 @@
 using Google.Apis.YouTube.v3.Data;
 using SmartInfluence.Collector.YouTube;
+using System.Text.RegularExpressions;
 
 namespace SmartInfluence.Collector.Extentions;
 
 public static class InterestsCalculator
 {
+    private static readonly Regex TagRegex = new("\"([^\"]+)\"|[^,\\s]+", RegexOptions.Compiled);
+
     public static YouTubeApi.Interests Calculate(
         Channel channel,
         IReadOnlyCollection<YouTubeApi.VideoDetailModel> videos)
@@ -49,7 +52,11 @@ public static class InterestsCalculator
             return [];
         }
 
-        return tags.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        return TagRegex
+            .Matches(tags)
+            .Select(match => match.Groups[1].Success ? match.Groups[1].Value : match.Value)
+            .Select(tag => tag.Trim())
+            .Where(tag => !string.IsNullOrWhiteSpace(tag));
     }
 
     private static string? NormalizeTopic(string? value)

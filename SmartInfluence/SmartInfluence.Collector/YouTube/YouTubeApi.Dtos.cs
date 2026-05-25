@@ -6,6 +6,7 @@ public static partial class YouTubeApi
     {
         public string? Source { get; init; }
         public string? CountryCode { get; init; }
+        public string? Language { get; init; }
         public required string ChannelId { get; init; }
         public required string ChannelUrl { get; init; }
         public required string Name { get; init; }
