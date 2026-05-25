@@ -21,5 +21,13 @@ public class AiController : ControllerBase
         var criteriamodel = await _productQueryAiService.ParseProductDescriptionAsync(descriprion);
         return Ok(criteriamodel);
     }
+
+    [HttpGet("rew/{channelId}")]
+    public async Task<ActionResult<string>> ChannelReview(string channelId)
+    {
+        return await _productQueryAiService.AiChannelReviewAsync(channelId);
+    }
+    
+    
     
 }

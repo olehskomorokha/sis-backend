@@ -145,7 +145,7 @@ public class ElasticsearchService : IElasticsearchService
     public async Task<object> GetById(string id)
     {
         var response = await _client.SearchAsync<object>(s => s
-            .Index("blogger")
+            .Index("youtube")
             .Size(1)
             .Query(q => q
                 .Term(t => t

@@ -10,11 +10,13 @@ public class ProductQueryAiService : IProductQueryAiService
 {
     private readonly string _apiKey;
     private readonly string _model;
+    private readonly IElasticsearchService _elasticsearchService;
 
-    public ProductQueryAiService(IConfiguration configuration)
+    public ProductQueryAiService(IConfiguration configuration, IElasticsearchService elasticsearchService)
     {
         _apiKey = configuration["OpenAI:ApiKey"] ?? throw new InvalidOperationException("OpenAI:ApiKey is not configured.");
         _model = configuration["OpenAI:Model"] ?? "gpt-4.1";
+        _elasticsearchService = elasticsearchService;
     }
 
     public async Task<ProductCriteriaModel> ParseProductDescriptionAsync(string productDescription)
@@ -65,39 +67,48 @@ public class ProductQueryAiService : IProductQueryAiService
         ) ?? new ProductCriteriaModel();
     }
 
-    private static string GetString(JsonElement root, string propertyName)
+    public async Task<string> AiChannelReviewAsync(string channelId)
     {
-        return root.TryGetProperty(propertyName, out var value) && value.ValueKind == JsonValueKind.String
-            ? value.GetString() ?? string.Empty
-            : string.Empty;
-    }
-
-    private static List<string> GetStringArray(JsonElement root, string propertyName)
-    {
-        if (!root.TryGetProperty(propertyName, out var value) || value.ValueKind != JsonValueKind.Array)
+        var channel = _elasticsearchService.GetById(channelId);
+        if (channel == null)
         {
-            return [];
+            return string.Empty;
         }
 
-        return value.EnumerateArray()
-            .Where(x => x.ValueKind == JsonValueKind.String)
-            .Select(x => x.GetString())
-            .Where(x => !string.IsNullOrWhiteSpace(x))
-            .Select(x => x!)
-            .ToList();
-    }
+        var client = new ChatClient(model: _model, apiKey: _apiKey);
 
-    private static int? GetInt32Nullable(JsonElement root, string propertyName)
-    {
-        return root.TryGetProperty(propertyName, out var value) && value.ValueKind == JsonValueKind.Number && value.TryGetInt32(out var result)
-            ? result
-            : null;
-    }
+        var channelJson = JsonSerializer.Serialize(channel, new JsonSerializerOptions
+        {
+            WriteIndented = true
+        });
 
-    private static decimal? GetDecimalNullable(JsonElement root, string propertyName)
-    {
-        return root.TryGetProperty(propertyName, out var value) && value.ValueKind == JsonValueKind.Number && value.TryGetDecimal(out var result)
-            ? result
-            : null;
+        var messages = new List<ChatMessage>
+        {
+            new SystemChatMessage(
+                """
+                You analyze YouTube channel data.
+
+                Based on the provided channel JSON, write a short review in Ukrainian.
+
+                Describe:
+                - what the channel is about;
+                - main content topics;
+                - likely target audience;
+                - content style;
+                - whether the channel may be useful for influencer marketing.
+
+                Rules:
+                - Answer only in Ukrainian.
+                - Do not invent facts that are not present in the data.
+                - If some information is missing, make a careful assumption based on title, description, tags and statistics.
+                - Keep the answer concise: 1-2 paragraphs.
+                """
+            ),
+            new UserChatMessage(channelJson)
+        };
+
+        var completion = await client.CompleteChatAsync(messages);
+
+        return completion.Value.Content[0].Text;
     }
 }
