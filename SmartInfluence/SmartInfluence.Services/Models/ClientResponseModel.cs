@@ -8,6 +8,5 @@ public class ClientResponseModel
     public decimal? Budget { get; set; }
     public string? TargetCountry { get; set; } = string.Empty;
     public string? TargetAudience { get; set; } = string.Empty;
-    public string? Goals { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
 }

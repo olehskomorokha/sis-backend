@@ -5,4 +5,5 @@ namespace SmartInfluence.Services.Interfaces;
 public interface IProductQueryAiService
 {
     Task<ProductCriteriaModel> ParseProductDescriptionAsync(string productDescription);
+    Task<string> AiChannelReviewAsync(string channelId);
 }

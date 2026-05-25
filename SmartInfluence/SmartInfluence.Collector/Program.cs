@@ -15,4 +15,3 @@ foreach (var channel in channels)
     var mappedBlogger = Mapper.MapToBloggerDto(channel, videoDetails);
     await YouTubeElasticService.AddBloggerAsync(model, mappedBlogger);
 }
-

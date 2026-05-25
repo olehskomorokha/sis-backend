@@ -8,8 +8,7 @@ namespace SmartInfluence.Services.Services;
 
 public class ElasticsearchService : IElasticsearchService
 {
-    private const string BloggerIndex = "blogger";
-    private const string VideoDetailIndex = "youtube-video-details";
+    private const string YoutuberIndex = "youtube";
 
     private readonly ElasticsearchClient _client;
     
@@ -21,35 +20,43 @@ public class ElasticsearchService : IElasticsearchService
     public async Task<List<string>> GetAllBloggerTags()
     {
         var response = await _client.SearchAsync<object>(s => s
-            .Index(BloggerIndex)
+            .Index(YoutuberIndex)
             .Size(0)
             .Aggregations(aggs => aggs
-                .Add("unique_topic_categories", a => a
+                .Add("unique_channel_tags", a => a
                     .Terms(t => t
-                        .Field("topicCategories.keyword")
+                        .Field("interests.channelTags.keyword")
+                        .Size(1000)
+                    )
+                )
+                .Add("unique_video_tags", a => a
+                    .Terms(t => t
+                        .Field("interests.videoTags.keyword")
                         .Size(1000)
                     )
                 )
             )
         );
 
-        var aggregation = response.Aggregations?
-            .GetStringTerms("unique_topic_categories");
-
-        if (aggregation?.Buckets == null)
-        {
-            return [];
-        }
-
-        return aggregation.Buckets
-            .Select(b => b.Key.ToString())
+        return new[] { "unique_channel_tags", "unique_video_tags" }
+            .SelectMany(aggregationName => response.Aggregations?
+                .GetStringTerms(aggregationName)?
+                .Buckets
+                .Select(bucket => bucket.Key.ToString()) ?? [])
             .Where(key => !string.IsNullOrWhiteSpace(key))
             .SelectMany(key => key!.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            .Where(IsUkrainianTag)
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();
     }
 
-    public async Task<List<InfluencerSearchModel>> GetByFilters(FiltersModel model)
+    private static bool IsUkrainianTag(string tag)
+    {
+        return tag.Contains("україн", StringComparison.OrdinalIgnoreCase)
+               || tag.Any(letter => "іїєґІЇЄҐ".Contains(letter));
+    }
+
+    public async Task<List<object>> GetByFilters(FiltersModel model)
     {
         var size = Math.Clamp(model.ResponseCount ?? 50, 1, 500);
         var tags = model.Tags?
@@ -63,12 +70,12 @@ public class ElasticsearchService : IElasticsearchService
         var hasTags = tags.Count > 0;
         var hasFilters = hasCountry || hasFollowersRange || hasTags;
 
-        var filters = new List<Action<QueryDescriptor<BloggerDocument>>>();
+        var filters = new List<Action<QueryDescriptor<object>>>();
 
         if (hasCountry)
         {
             filters.Add(q => q.Term(t => t
-                .Field("country")
+                .Field("countryCode.keyword")
                 .Value(model.Country!)
                 .CaseInsensitive(true)));
         }
@@ -78,7 +85,7 @@ public class ElasticsearchService : IElasticsearchService
             filters.Add(q => q.Range(r => r
                 .NumberRange(nr =>
                 {
-                    nr.Field("subscriberCount");
+                    nr.Field("fields.subscriberCount");
 
                     if (model.MinFollowersCount.HasValue)
                     {
@@ -95,11 +102,18 @@ public class ElasticsearchService : IElasticsearchService
         if (hasTags)
         {
             var tagWildcardFilters = tags
-                .Select<string, Action<QueryDescriptor<BloggerDocument>>>(tag =>
-                    q => q.Wildcard(w => w
-                        .Field("topicCategories")
-                        .Value($"*{tag}*")
-                        .CaseInsensitive(true)))
+                .Select<string, Action<QueryDescriptor<object>>>(tag =>
+                    q => q.Bool(b => b
+                        .Should(
+                            sq => sq.Wildcard(w => w
+                                .Field("interests.channelTags")
+                                .Value($"*{tag}*")
+                                .CaseInsensitive(true)),
+                            sq => sq.Wildcard(w => w
+                                .Field("interests.videoTags")
+                                .Value($"*{tag}*")
+                                .CaseInsensitive(true)))
+                        .MinimumShouldMatch(1)))
                 .ToArray();
 
             filters.Add(q => q.Bool(bb => bb
@@ -107,9 +121,9 @@ public class ElasticsearchService : IElasticsearchService
                 .MinimumShouldMatch(1)));
         }
 
-        var response = await _client.SearchAsync<BloggerDocument>(s =>
+        var response = await _client.SearchAsync<object>(s =>
         {
-            s.Index(BloggerIndex).Size(size);
+            s.Index(YoutuberIndex).Size(size);
 
             if (!hasFilters)
             {
@@ -125,15 +139,122 @@ public class ElasticsearchService : IElasticsearchService
             return [];
         }
 
+        return response.Documents.ToList();
+    }
+
+    public async Task<List<RecommendedChannelModel>> RecommendBloggersAsync(
+        ProductCriteriaModel criteria,
+        InfluencerRecommendationFiltersModel filters)
+    {
+        const int size = 20;
+        var channelTags = NormalizeTags(criteria.ChannelTags)
+            .Concat(NormalizeTags(filters.Tags))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+        var videoTags = NormalizeTags(criteria.VideoTags)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        var filterQueries = new List<Action<QueryDescriptor<RecommendedChannelDocument>>>();
+
+        if (!string.IsNullOrWhiteSpace(filters.Country))
+        {
+            filterQueries.Add(q => q.Term(t => t
+                .Field("countryCode.keyword")
+                .Value(filters.Country)
+                .CaseInsensitive(true)));
+        }
+
+        if (filters.MinFollowersCount.HasValue)
+        {
+            filterQueries.Add(q => q.Range(r => r
+                .NumberRange(nr => nr
+                    .Field("fields.subscriberCount")
+                    .Gte(filters.MinFollowersCount.Value))));
+        }
+
+        if (filters.MinAvgViews.HasValue)
+        {
+            filterQueries.Add(q => q.Range(r => r
+                .NumberRange(nr => nr
+                    .Field("statictics.perHalfYear.avgView")
+                    .Gte(filters.MinAvgViews.Value))));
+        }
+
+        var shouldQueries = new List<Action<QueryDescriptor<RecommendedChannelDocument>>>();
+
+        foreach (var tag in channelTags)
+        {
+            shouldQueries.Add(q => q.Wildcard(w => w
+                .Field("interests.channelTags")
+                .Value($"*{tag}*")
+                .CaseInsensitive(true)
+                .Boost(4)));
+            shouldQueries.Add(q => q.Wildcard(w => w
+                .Field("name")
+                .Value($"*{tag}*")
+                .CaseInsensitive(true)
+                .Boost(2)));
+            shouldQueries.Add(q => q.Wildcard(w => w
+                .Field("description")
+                .Value($"*{tag}*")
+                .CaseInsensitive(true)
+                .Boost(1.5f)));
+        }
+
+        foreach (var tag in videoTags)
+        {
+            shouldQueries.Add(q => q.Wildcard(w => w
+                .Field("interests.videoTags")
+                .Value($"*{tag}*")
+                .CaseInsensitive(true)
+                .Boost(3)));
+            shouldQueries.Add(q => q.Wildcard(w => w
+                .Field("interests.videoTitle")
+                .Value($"*{tag}*")
+                .CaseInsensitive(true)
+                .Boost(2)));
+        }
+
+        var response = await _client.SearchAsync<RecommendedChannelDocument>(s =>
+        {
+            s.Index(YoutuberIndex).Size(size);
+
+            if (shouldQueries.Count == 0 && filterQueries.Count == 0)
+            {
+                s.Query(q => q.MatchAll(_ => { }));
+                return;
+            }
+
+            s.Query(q => q.Bool(b =>
+            {
+                if (filterQueries.Count > 0)
+                {
+                    b.Filter(filterQueries.ToArray());
+                }
+
+                if (shouldQueries.Count > 0)
+                {
+                    b.Should(shouldQueries.ToArray())
+                        .MinimumShouldMatch(1);
+                }
+            }));
+        });
+
+        if (!response.IsValidResponse)
+        {
+            return [];
+        }
+
         return response.Documents
-            .Select(ElasticsearchMapper.MapToInfluencerSearchModel)
+            .Select(MapToRecommendedChannelModel)
             .ToList();
     }
 
     public async Task<object> GetById(string id)
     {
         var response = await _client.SearchAsync<object>(s => s
-            .Index("blogger")
+            .Index("youtube")
             .Size(1)
             .Query(q => q
                 .Term(t => t
@@ -146,17 +267,55 @@ public class ElasticsearchService : IElasticsearchService
         var blogger = response.Documents.FirstOrDefault();
         return blogger;
     }
-    public async Task<List<VideoDetailModel>> GetAllVideoDetailsByChannel(string channelId)
+
+    private static IEnumerable<string> NormalizeTags(IEnumerable<string>? tags)
     {
-        var response = await _client.SearchAsync<VideoDetailModel>(s => s
-            .Index("youtube-video-details")
-            .Query(q => q
-                .Term(t => t
-                    .Field("channelId.keyword")
-                    .Value("UCuf5y77EhiKWNxzn9Y_Wa_Q"))
-            )
-        );
-        
-        return response.Documents.ToList();
+        return tags?
+            .Where(tag => !string.IsNullOrWhiteSpace(tag))
+            .Select(tag => tag.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase) ?? [];
     }
+
+    private static RecommendedChannelModel MapToRecommendedChannelModel(RecommendedChannelDocument document)
+    {
+        return new RecommendedChannelModel
+        {
+            ChannelName = document.Name ?? string.Empty,
+            ChannelUrl = document.ChannelUrl ?? string.Empty,
+            CountryCode = document.CountryCode ?? string.Empty,
+            Description = document.Description ?? string.Empty,
+            AvatarUrl = document.AvatarUrl ?? string.Empty,
+            EngagementRate = document.Statictics?.EngagementRate ?? 0,
+            VideoCount = document.Statictics?.PerHalfYear?.VideoCount ?? 0,
+            PostPerDay = document.Statictics?.PerHalfYear?.PostPerDay ?? 0,
+            AvgLike = document.Statictics?.PerHalfYear?.AvgLike ?? 0,
+            AvgView = document.Statictics?.PerHalfYear?.AvgView ?? 0,
+            AvgComment = document.Statictics?.PerHalfYear?.AvgComment ?? 0
+        };
+    }
+}
+
+public class RecommendedChannelDocument
+{
+    public string? Name { get; set; }
+    public string? ChannelUrl { get; set; }
+    public string? CountryCode { get; set; }
+    public string? Description { get; set; }
+    public string? AvatarUrl { get; set; }
+    public RecommendedChannelStaticticsDocument? Statictics { get; set; }
+}
+
+public class RecommendedChannelStaticticsDocument
+{
+    public float EngagementRate { get; set; }
+    public RecommendedChannelPerHalfYearDocument? PerHalfYear { get; set; }
+}
+
+public class RecommendedChannelPerHalfYearDocument
+{
+    public int VideoCount { get; set; }
+    public float PostPerDay { get; set; }
+    public int AvgLike { get; set; }
+    public int AvgView { get; set; }
+    public int AvgComment { get; set; }
 }

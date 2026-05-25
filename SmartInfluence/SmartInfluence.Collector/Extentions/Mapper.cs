@@ -16,6 +16,7 @@ public class Mapper
         {
             Source = "youtube.com",
             CountryCode = channel.Snippet?.Country,
+            Language = channel.Snippet?.DefaultLanguage,
             ChannelId = channel.Id!,
             ChannelUrl = $"https://www.youtube.com/channel/{channel.Id}",
             Name = channel.Snippet?.Title ?? string.Empty,
@@ -124,7 +125,7 @@ public class Mapper
             return 0;
         }
 
-        return (float)((averageLikes + 2 * averageComments) / subscriberCount.Value);
+        return (float)Math.Round(((averageLikes + 2 * averageComments) / subscriberCount.Value) * 100, 2);
     }
    
 }

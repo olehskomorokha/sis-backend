@@ -10,11 +10,13 @@ public class ProductQueryAiService : IProductQueryAiService
 {
     private readonly string _apiKey;
     private readonly string _model;
+    private readonly IElasticsearchService _elasticsearchService;
 
-    public ProductQueryAiService(IConfiguration configuration)
+    public ProductQueryAiService(IConfiguration configuration, IElasticsearchService elasticsearchService)
     {
         _apiKey = configuration["OpenAI:ApiKey"] ?? throw new InvalidOperationException("OpenAI:ApiKey is not configured.");
         _model = configuration["OpenAI:Model"] ?? "gpt-4.1";
+        _elasticsearchService = elasticsearchService;
     }
 
     public async Task<ProductCriteriaModel> ParseProductDescriptionAsync(string productDescription)
@@ -30,91 +32,83 @@ public class ProductQueryAiService : IProductQueryAiService
         {
             new SystemChatMessage(
                 """
-                Extract influencer marketing targeting criteria from the user text.
+                You analyze a product description and generate tags for finding relevant YouTube channels.
+
                 Return only valid JSON with this exact schema:
                 {
-                  "productCategory": "string",
-                  "topics": ["string"],
-                  "platforms": ["instagram|tiktok|youtube|telegram|x|facebook"],
-                  "targetCountry": "string",
-                  "targetGender": "string",
-                  "ageMin": 0,
-                  "ageMax": 0,
-                  "maxFakeFollowersPercent": 0
+                  "channelTags": ["string"],
+                  "videoTags": ["string"]
                 }
-                Use empty strings, empty arrays, or nulls when the field is unknown.
-                Do not use 0 for unknown numeric fields.
+
+                Rules:
+                - Generate ALL tags ONLY in Ukrainian language.
+                - channelTags: general influencer/channel topics or niches.
+                - videoTags: more specific video-level keywords related to the product.
+                - Generate realistic YouTube-related tags.
+                - Do not invent unrelated tags.
+                - Return 5-15 channelTags.
+                - Return 10-25 videoTags.
+                - Do not add explanations.
+                - Do not wrap JSON in markdown.
                 """
             ),
             new UserChatMessage(productDescription)
         };
+        var completion = await client.CompleteChatAsync(messages);
+
+        var json = completion.Value.Content[0].Text;
+
+        return JsonSerializer.Deserialize<ProductCriteriaModel>(
+            json,
+            new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            }
+        ) ?? new ProductCriteriaModel();
+    }
+
+    public async Task<string> AiChannelReviewAsync(string channelId)
+    {
+        var channel = _elasticsearchService.GetById(channelId);
+        if (channel == null)
+        {
+            return string.Empty;
+        }
+
+        var client = new ChatClient(model: _model, apiKey: _apiKey);
+
+        var channelJson = JsonSerializer.Serialize(channel, new JsonSerializerOptions
+        {
+            WriteIndented = true
+        });
+
+        var messages = new List<ChatMessage>
+        {
+            new SystemChatMessage(
+                """
+                You analyze YouTube channel data.
+
+                Based on the provided channel JSON, write a short review in Ukrainian.
+
+                Describe:
+                - what the channel is about;
+                - main content topics;
+                - likely target audience;
+                - content style;
+                - whether the channel may be useful for influencer marketing.
+
+                Rules:
+                - Answer only in Ukrainian.
+                - Do not invent facts that are not present in the data.
+                - If some information is missing, make a careful assumption based on title, description, tags and statistics.
+                - Keep the answer concise: 1-2 paragraphs.
+                """
+            ),
+            new UserChatMessage(channelJson)
+        };
 
         var completion = await client.CompleteChatAsync(messages);
-        var content = completion.Value.Content.FirstOrDefault()?.Text;
-        if (string.IsNullOrWhiteSpace(content))
-        {
-            return new ProductCriteriaModel();
-        }
 
-        try
-        {
-            using var document = JsonDocument.Parse(content);
-            var root = document.RootElement;
-
-            return new ProductCriteriaModel
-            {
-                ProductCategory = GetString(root, "productCategory"),
-                Topics = GetStringArray(root, "topics"),
-                Platforms = GetStringArray(root, "platforms"),
-                TargetCountry = GetString(root, "targetCountry"),
-                TargetGender = GetString(root, "targetGender"),
-                AgeMin = GetInt32Nullable(root, "ageMin"),
-                AgeMax = GetInt32Nullable(root, "ageMax"),
-                MaxFakeFollowersPercent = GetDecimalNullable(root, "maxFakeFollowersPercent")
-            };
-        }
-        catch (JsonException)
-        {
-            return new ProductCriteriaModel
-            {
-                ProductCategory = productDescription.Trim()
-            };
-        }
-    }
-
-    private static string GetString(JsonElement root, string propertyName)
-    {
-        return root.TryGetProperty(propertyName, out var value) && value.ValueKind == JsonValueKind.String
-            ? value.GetString() ?? string.Empty
-            : string.Empty;
-    }
-
-    private static List<string> GetStringArray(JsonElement root, string propertyName)
-    {
-        if (!root.TryGetProperty(propertyName, out var value) || value.ValueKind != JsonValueKind.Array)
-        {
-            return [];
-        }
-
-        return value.EnumerateArray()
-            .Where(x => x.ValueKind == JsonValueKind.String)
-            .Select(x => x.GetString())
-            .Where(x => !string.IsNullOrWhiteSpace(x))
-            .Select(x => x!)
-            .ToList();
-    }
-
-    private static int? GetInt32Nullable(JsonElement root, string propertyName)
-    {
-        return root.TryGetProperty(propertyName, out var value) && value.ValueKind == JsonValueKind.Number && value.TryGetInt32(out var result)
-            ? result
-            : null;
-    }
-
-    private static decimal? GetDecimalNullable(JsonElement root, string propertyName)
-    {
-        return root.TryGetProperty(propertyName, out var value) && value.ValueKind == JsonValueKind.Number && value.TryGetDecimal(out var result)
-            ? result
-            : null;
+        return completion.Value.Content[0].Text;
     }
 }

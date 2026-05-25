@@ -47,15 +47,11 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddScoped<IClientRepository, ClientRepository>();
 builder.Services.AddScoped<IInfluencerRepository, InfluencerRepository>();
-builder.Services.AddScoped<IInfluencerRecommendationRepository, InfluencerRecommendationRepository>();
-builder.Services.AddScoped<IPostRepository, PostRepository>();
 builder.Services.AddScoped<ITagRepository, TagRepository>();
 builder.Services.AddScoped<IElasticsearchService, ElasticsearchService>();
 builder.Services.AddScoped<IClientService, ClientService>();
 builder.Services.AddScoped<IInfluencerService, InfluencerService>();
 builder.Services.AddScoped<IInfluencerRecommendationService, InfluencerRecommendationService>();
-builder.Services.AddScoped<IPostService, PostService>();
-builder.Services.AddScoped<ITagService, TagService>();
 builder.Services.AddScoped<IProductQueryAiService, ProductQueryAiService>();
 
 builder.Services.AddSingleton<IConfiguration>(builder.Configuration);

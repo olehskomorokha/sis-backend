@@ -13,7 +13,7 @@ public static partial class YouTubeApi
     public static async Task<List<Channel>> CollectUkrainianChannelsAsync(YouTubeRequestModel model)
     {
         //var query = UkrainianChannelQueries[3];
-        var query = "футбол";
+        var query = "Сад, город, розсада";
         var searchRequest = model.Service.Search.List("snippet");
         searchRequest.Q = query;
         searchRequest.RelevanceLanguage = "uk";
@@ -33,7 +33,7 @@ public static partial class YouTubeApi
         var channelsRequest = model.Service.Channels.List("snippet,contentDetails,statistics,topicDetails,brandingSettings");
         channelsRequest.Id = string.Join(",", channelIds ?? []);
         var channelsResponse = await channelsRequest.ExecuteAsync(model.CancellationToken);
-
+        
         return channelsResponse.Items.ToList();
     }
 

@@ -39,12 +39,12 @@ public class InfluencerController : ControllerBase
     }
 
     [HttpPost("recommendations")]
-    public async Task<ActionResult<InfluencerRecommendationResponseModel>> RecommendAsync(
-        [FromBody] InfluencerRecommendationRequestModel request)
+    public async Task<ActionResult<ElasticInfluencerRecommendationResponseModel>> RecommendAsync(
+        [FromBody] InfluencerRecommendationFiltersModel request)
     {
-        if (request == null || string.IsNullOrWhiteSpace(request.ProductDescription))
+        if (request == null || string.IsNullOrWhiteSpace(request.Description))
         {
-            return BadRequest("ProductDescription is required.");
+            return BadRequest("Description is required.");
         }
 
         return Ok(await _influencerRecommendationService.RecommendAsync(request));
