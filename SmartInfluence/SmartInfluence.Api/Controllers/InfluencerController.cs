@@ -9,15 +9,10 @@ namespace SmartInfluence.Api.Controllers;
 public class InfluencerController : ControllerBase
 {
     private readonly IInfluencerService _influencerService;
-    private readonly IInfluencerRecommendationService _influencerRecommendationService;
 
-    public InfluencerController(
-        IInfluencerService influencerService,
-        IInfluencerRecommendationService influencerRecommendationService
-        )
+    public InfluencerController(IInfluencerService influencerService)
     {
         _influencerService = influencerService;
-        _influencerRecommendationService = influencerRecommendationService;
     }
 
     [HttpGet]
@@ -47,6 +42,6 @@ public class InfluencerController : ControllerBase
             return BadRequest("Description is required.");
         }
 
-        return Ok(await _influencerRecommendationService.RecommendAsync(request));
+        return Ok(await _influencerService.RecommendAsync(request));
     }
 }

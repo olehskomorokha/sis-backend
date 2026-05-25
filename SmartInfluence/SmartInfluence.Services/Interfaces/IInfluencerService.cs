@@ -6,4 +6,5 @@ public interface IInfluencerService
 {
     public Task<List<InfluencerResponseModel>> GetAllAsync();
     public Task<InfluencerResponseModel?> GetByIdAsync(int id);
+    public Task<ElasticInfluencerRecommendationResponseModel> RecommendAsync(InfluencerRecommendationFiltersModel request);
 }
