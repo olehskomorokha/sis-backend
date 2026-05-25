@@ -24,7 +24,6 @@ public class InfluencerRecommendationService : IInfluencerRecommendationService
 
         return new ElasticInfluencerRecommendationResponseModel
         {
-            Criteria = criteria,
             Channels = channels
         };
     }

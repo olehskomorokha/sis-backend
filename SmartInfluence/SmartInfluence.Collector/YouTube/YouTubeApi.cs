@@ -13,7 +13,7 @@ public static partial class YouTubeApi
     public static async Task<List<Channel>> CollectUkrainianChannelsAsync(YouTubeRequestModel model)
     {
         //var query = UkrainianChannelQueries[3];
-        var query = "Сад, город, розсада";
+        var query = "Фітнес";
         var searchRequest = model.Service.Search.List("snippet");
         searchRequest.Q = query;
         searchRequest.RelevanceLanguage = "uk";
