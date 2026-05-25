@@ -4,5 +4,6 @@ namespace SmartInfluence.Services.Interfaces;
 
 public interface IInfluencerRecommendationService
 {
-    Task<InfluencerRecommendationResponseModel> RecommendAsync(InfluencerRecommendationRequestModel request);
+    Task<ElasticInfluencerRecommendationResponseModel> RecommendAsync(
+        InfluencerRecommendationFiltersModel filters);
 }

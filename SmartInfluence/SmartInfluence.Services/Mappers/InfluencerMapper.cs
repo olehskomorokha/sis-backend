@@ -1,3 +1,4 @@
+using SmartInfluence.Collector.YouTube;
 using SmartInfluence.Data.Entities;
 using SmartInfluence.Services.Models;
 
@@ -20,6 +21,24 @@ public static class InfluencerMapper
             AvgLikes = influencer.AvgLikes,
             AvgComments = influencer.AvgComments,
             
+        };
+    }
+
+    public static RecommendedChannelModel MapToRecommendedChannelModel(YouTubeApi.UkrainianYouTubeBloggerDto channel)
+    {
+        return new RecommendedChannelModel()
+        {
+            ChannelName = channel.Name,
+            ChannelUrl = channel.ChannelUrl,
+            CountryCode = channel.CountryCode ?? string.Empty,
+            Description = channel.Description ?? string.Empty,
+            AvatarUrl = channel.AvatarUrl ?? string.Empty,
+            EngagementRate = channel.Statictics.EngagementRate,
+            VideoCount = channel.Statictics.PerHalfYear.VideoCount,
+            PostPerDay = channel.Statictics.PerHalfYear.PostPerDay,
+            AvgLike = channel.Statictics.PerHalfYear.AvgLike,
+            AvgView = channel.Statictics.PerHalfYear.AvgView,
+            AvgComment = channel.Statictics.PerHalfYear.AvgComment
         };
     }
 }

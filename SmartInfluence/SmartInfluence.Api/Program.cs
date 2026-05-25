@@ -51,6 +51,7 @@ builder.Services.AddScoped<ITagRepository, TagRepository>();
 builder.Services.AddScoped<IElasticsearchService, ElasticsearchService>();
 builder.Services.AddScoped<IClientService, ClientService>();
 builder.Services.AddScoped<IInfluencerService, InfluencerService>();
+builder.Services.AddScoped<IInfluencerRecommendationService, InfluencerRecommendationService>();
 builder.Services.AddScoped<ITagService, TagService>();
 builder.Services.AddScoped<IProductQueryAiService, ProductQueryAiService>();
 
