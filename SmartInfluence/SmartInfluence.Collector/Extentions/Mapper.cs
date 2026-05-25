@@ -125,7 +125,7 @@ public class Mapper
             return 0;
         }
 
-        return (float)((averageLikes + 2 * averageComments) / subscriberCount.Value);
+        return ((float)((averageLikes + 2 * averageComments) / subscriberCount.Value)) * 100;
     }
    
 }

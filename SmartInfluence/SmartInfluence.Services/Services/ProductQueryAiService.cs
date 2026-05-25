@@ -30,56 +30,39 @@ public class ProductQueryAiService : IProductQueryAiService
         {
             new SystemChatMessage(
                 """
-                Extract influencer marketing targeting criteria from the user text.
+                You analyze a product description and generate tags for finding relevant YouTube channels.
+
                 Return only valid JSON with this exact schema:
                 {
-                  "productCategory": "string",
-                  "topics": ["string"],
-                  "platforms": ["instagram|tiktok|youtube|telegram|x|facebook"],
-                  "targetCountry": "string",
-                  "targetGender": "string",
-                  "ageMin": 0,
-                  "ageMax": 0,
-                  "maxFakeFollowersPercent": 0
+                  "channelTags": ["string"],
+                  "videoTags": ["string"]
                 }
-                Use empty strings, empty arrays, or nulls when the field is unknown.
-                Do not use 0 for unknown numeric fields.
+
+                Rules:
+                - Generate ALL tags ONLY in Ukrainian language.
+                - channelTags: general influencer/channel topics or niches.
+                - videoTags: more specific video-level keywords related to the product.
+                - Generate realistic YouTube-related tags.
+                - Do not invent unrelated tags.
+                - Return 5-15 channelTags.
+                - Return 10-25 videoTags.
+                - Do not add explanations.
+                - Do not wrap JSON in markdown.
                 """
             ),
             new UserChatMessage(productDescription)
         };
-
         var completion = await client.CompleteChatAsync(messages);
-        var content = completion.Value.Content.FirstOrDefault()?.Text;
-        if (string.IsNullOrWhiteSpace(content))
-        {
-            return new ProductCriteriaModel();
-        }
 
-        try
-        {
-            using var document = JsonDocument.Parse(content);
-            var root = document.RootElement;
+        var json = completion.Value.Content[0].Text;
 
-            return new ProductCriteriaModel
+        return JsonSerializer.Deserialize<ProductCriteriaModel>(
+            json,
+            new JsonSerializerOptions
             {
-                ProductCategory = GetString(root, "productCategory"),
-                Topics = GetStringArray(root, "topics"),
-                Platforms = GetStringArray(root, "platforms"),
-                TargetCountry = GetString(root, "targetCountry"),
-                TargetGender = GetString(root, "targetGender"),
-                AgeMin = GetInt32Nullable(root, "ageMin"),
-                AgeMax = GetInt32Nullable(root, "ageMax"),
-                MaxFakeFollowersPercent = GetDecimalNullable(root, "maxFakeFollowersPercent")
-            };
-        }
-        catch (JsonException)
-        {
-            return new ProductCriteriaModel
-            {
-                ProductCategory = productDescription.Trim()
-            };
-        }
+                PropertyNameCaseInsensitive = true
+            }
+        ) ?? new ProductCriteriaModel();
     }
 
     private static string GetString(JsonElement root, string propertyName)
