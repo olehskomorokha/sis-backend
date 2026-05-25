@@ -15,7 +15,8 @@ public static class InterestsCalculator
         return new YouTubeApi.Interests
         {
             ChannelTags = ExtractChannelTags(channel),
-            VideoTags = ExtractVideoTags(videos)
+            VideoTags = ExtractVideoTags(videos),
+            VideoTitle = ExtractVideoTitles(videos),
         };
     }
 
@@ -43,6 +44,14 @@ public static class InterestsCalculator
             .Select(tag => tag!)
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray();
+    }
+
+    private static string ExtractVideoTitles(IReadOnlyCollection<YouTubeApi.VideoDetailModel> videos)
+    {
+        return string.Join(", ", videos
+            .Select(video => video.Title)
+            .Where(title => !string.IsNullOrWhiteSpace(title))
+            .Select(title => title!.Trim()));
     }
 
     private static IEnumerable<string> SplitTags(string? tags)

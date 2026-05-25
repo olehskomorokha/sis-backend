@@ -32,6 +32,7 @@ public static partial class YouTubeApi
     {
         public string[] ChannelTags { get; init; }
         public string[] VideoTags { get; init; }
+        public string? VideoTitle { get; init; }
     }
     public sealed record Statictics
     {
