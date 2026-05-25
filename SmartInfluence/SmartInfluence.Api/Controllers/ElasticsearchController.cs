@@ -26,15 +26,9 @@ public class ElasticsearchController : ControllerBase
     {
         return await _elasticserchService.GetAllBloggerTags();
     }
-    
-    [HttpGet("VideoDetailsByChannel/{channelId}")]
-    public async Task<List<VideoDetailModel>> GetAllVideoDetailsByChannel(string channelId)
-    {
-        return await _elasticserchService.GetAllVideoDetailsByChannel(channelId);
-    }
 
     [HttpPost("filters")]
-    public async Task<List<InfluencerSearchModel>> GetByFilters([FromBody] FiltersModel model)
+    public async Task<List<object>> GetByFilters([FromBody] FiltersModel model)
     {
         return await _elasticserchService.GetByFilters(model);
     }
