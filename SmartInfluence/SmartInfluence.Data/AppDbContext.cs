@@ -14,14 +14,9 @@ public class AppDbContext : DbContext
     public DbSet<ClientInfluencer> ClientInfluencers => Set<ClientInfluencer>();
     public DbSet<Influencers> Influencers => Set<Influencers>();
     public DbSet<InfluencerScore> InfluencerScores => Set<InfluencerScore>();
-    public DbSet<InfluencerTag> InfluencerTags => Set<InfluencerTag>();
-    public DbSet<Tag> Tags => Set<Tag>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<InfluencerTag>()
-            .HasKey(influencerTag => new { influencerTag.InfluencerId, influencerTag.TagId });
-
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
         {
             foreach (var property in entityType.GetProperties())

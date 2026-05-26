@@ -11,7 +11,5 @@ public class Influencers
     public string Lenguage { get; set; }
     public int FollowersCount { get; set; }
     public int PostsCount { get; set; }
-    public decimal AvgViews { get; set; }
-    public decimal AvgLikes { get; set; }
-    public decimal AvgComments { get; set; }
+    
 }

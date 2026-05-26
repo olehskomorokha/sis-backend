@@ -1,3 +1,4 @@
+using Elastic.Clients.Elasticsearch.MachineLearning;
 using SmartInfluence.Collector.YouTube;
 using SmartInfluence.Data.Entities;
 using SmartInfluence.Services.Models;
@@ -17,13 +18,20 @@ public static class InfluencerMapper
             Lenguage = influencer.Lenguage,
             FollowersCount = influencer.FollowersCount,
             PostsCount = influencer.PostsCount,
-            AvgViews = influencer.AvgViews,
-            AvgLikes = influencer.AvgLikes,
-            AvgComments = influencer.AvgComments,
-            
         };
     }
 
+    public static InfluencerScoreModel MapToScoreModel(RecommendedChannelModel model)
+    {
+        return new InfluencerScoreModel
+        {
+            EngagementRate = model.EngagementRate,
+            BrandFitScore = 0,
+            AvgViews = model.AvgView,
+            AvgComments = model.AvgComment,
+            AvgLikes = model.AvgLike,
+        };
+    }
     public static RecommendedChannelModel MapToRecommendedChannelModel(YouTubeApi.UkrainianYouTubeBloggerDto channel)
     {
         return new RecommendedChannelModel()

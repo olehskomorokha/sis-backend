@@ -110,21 +110,10 @@ public class ClientService : IClientService
             client.Email = model.Email;
         }
 
-        if (model.Budget.HasValue)
-        {
-            client.Budget = model.Budget;
-        }
-
         if (!string.IsNullOrWhiteSpace(model.TargetCountry))
         {
             client.TargetCountry = model.TargetCountry;
         }
-
-        if (!string.IsNullOrWhiteSpace(model.TargetAudience))
-        {
-            client.TargetAudience = model.TargetAudience;
-        }
-        
     }
 
     private string GetAccessToken(int userId, string email)
