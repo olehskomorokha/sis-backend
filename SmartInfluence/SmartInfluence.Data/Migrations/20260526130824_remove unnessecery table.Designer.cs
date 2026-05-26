@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SmartInfluence.Data;
 
@@ -11,9 +12,11 @@ using SmartInfluence.Data;
 namespace SmartInfluence.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260526130824_remove unnessecery table")]
+    partial class removeunnessecerytable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -61,7 +64,7 @@ namespace SmartInfluence.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("ClientId")
+                    b.Property<int>("CampaignId")
                         .HasColumnType("int");
 
                     b.Property<int>("InfluencerId")
@@ -76,10 +79,9 @@ namespace SmartInfluence.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("InfluencerId");
+                    b.HasIndex("CampaignId");
 
-                    b.HasIndex("ClientId", "InfluencerId")
-                        .IsUnique();
+                    b.HasIndex("InfluencerId");
 
                     b.ToTable("ClientInfluencers");
                 });
@@ -150,7 +152,7 @@ namespace SmartInfluence.Data.Migrations
 
                     b.Property<string>("InfluencerId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Lenguage")
                         .IsRequired()
@@ -165,17 +167,14 @@ namespace SmartInfluence.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("InfluencerId")
-                        .IsUnique();
-
                     b.ToTable("Influencers");
                 });
 
             modelBuilder.Entity("SmartInfluence.Data.Entities.ClientInfluencer", b =>
                 {
-                    b.HasOne("SmartInfluence.Data.Entities.Client", "Client")
+                    b.HasOne("SmartInfluence.Data.Entities.Client", "Campaign")
                         .WithMany()
-                        .HasForeignKey("ClientId")
+                        .HasForeignKey("CampaignId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -185,7 +184,7 @@ namespace SmartInfluence.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Client");
+                    b.Navigation("Campaign");
 
                     b.Navigation("Influencer");
                 });

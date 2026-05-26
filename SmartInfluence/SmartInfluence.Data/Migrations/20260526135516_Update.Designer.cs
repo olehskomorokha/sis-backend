@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SmartInfluence.Data;
 
@@ -11,9 +12,11 @@ using SmartInfluence.Data;
 namespace SmartInfluence.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260526135516_Update")]
+    partial class Update
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -76,10 +79,9 @@ namespace SmartInfluence.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("InfluencerId");
+                    b.HasIndex("ClientId");
 
-                    b.HasIndex("ClientId", "InfluencerId")
-                        .IsUnique();
+                    b.HasIndex("InfluencerId");
 
                     b.ToTable("ClientInfluencers");
                 });
@@ -120,8 +122,6 @@ namespace SmartInfluence.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("InfluencerId");
-
                     b.ToTable("InfluencerScores");
                 });
 
@@ -150,7 +150,10 @@ namespace SmartInfluence.Data.Migrations
 
                     b.Property<string>("InfluencerId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("InfluencerScoreId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Lenguage")
                         .IsRequired()
@@ -165,8 +168,7 @@ namespace SmartInfluence.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("InfluencerId")
-                        .IsUnique();
+                    b.HasIndex("InfluencerScoreId");
 
                     b.ToTable("Influencers");
                 });
@@ -190,15 +192,16 @@ namespace SmartInfluence.Data.Migrations
                     b.Navigation("Influencer");
                 });
 
+            modelBuilder.Entity("SmartInfluence.Data.Entities.Influencers", b =>
+                {
+                    b.HasOne("SmartInfluence.Data.Entities.InfluencerScore", null)
+                        .WithMany("Influencers")
+                        .HasForeignKey("InfluencerScoreId");
+                });
+
             modelBuilder.Entity("SmartInfluence.Data.Entities.InfluencerScore", b =>
                 {
-                    b.HasOne("SmartInfluence.Data.Entities.Influencers", "Influencer")
-                        .WithMany()
-                        .HasForeignKey("InfluencerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Influencer");
+                    b.Navigation("Influencers");
                 });
 #pragma warning restore 612, 618
         }

@@ -28,5 +28,13 @@ public class AppDbContext : DbContext
                 }
             }
         }
+
+        modelBuilder.Entity<Influencers>()
+            .HasIndex(x => x.InfluencerId)
+            .IsUnique();
+
+        modelBuilder.Entity<ClientInfluencer>()
+            .HasIndex(x => new { x.ClientId, x.InfluencerId })
+            .IsUnique();
     }
 }

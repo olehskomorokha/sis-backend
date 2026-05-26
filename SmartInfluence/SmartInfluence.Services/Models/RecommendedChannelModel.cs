@@ -2,13 +2,15 @@
 
 public class RecommendedChannelModel
 {
-    public double? score { get; set; }
+    public double? Score { get; set; }
     public string ChannelName { get; set; }
     public string? ChannelId { get; set; }
     public string ChannelUrl { get; set; }
     public string CountryCode { get; set; }
+    public string Language { get; set; }
     public string Description { get; set; }
     public string AvatarUrl { get; set; }
+    public int FollowersCount { get; set; }
     public float EngagementRate { get; set; }
     public int VideoCount { get; set; }
     public float PostPerDay { get; set; }

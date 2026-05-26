@@ -10,6 +10,7 @@ appsettings.development.json
 # Visual Studio cache/options directory
 .vs/
 
+.codex-build
 # User-specific files
 *.suo
 *.user

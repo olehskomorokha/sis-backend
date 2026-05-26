@@ -32,10 +32,44 @@ public class InfluencerService : IInfluencerService
         return influencer == null ? null : InfluencerMapper.MapToResponseModel(influencer);
     }
 
-    public async Task AddInfluencer()
+    public async Task<InfluencerResponseModel> SaveRecommendedAsync(RecommendedChannelModel model, int clientId)
     {
-        
+        if (model == null)
+        {
+            throw new ArgumentNullException(nameof(model));
+        }
+
+        if (string.IsNullOrWhiteSpace(model.ChannelId))
+        {
+            throw new ArgumentException("ChannelId is required.", nameof(model));
+        }
+
+        if (string.IsNullOrWhiteSpace(model.ChannelName))
+        {
+            throw new ArgumentException("ChannelName is required.", nameof(model));
+        }
+
+        var influencer = await _influencerRepository.GetByInfluencerIdAsync(model.ChannelId);
+        if (influencer == null)
+        {
+            influencer = InfluencerMapper.MapToInfluencerEntity(model);
+            await _influencerRepository.CreateAsync(influencer);
+
+            var score = InfluencerMapper.MapToInfluencerScoreEntity(model, influencer.Id);
+            await _influencerRepository.AddScoreAsync(score);
+        }
+
+        var clientInfluencerExists = await _influencerRepository
+            .ClientInfluencerExistsAsync(clientId, influencer.Id);
+        if (!clientInfluencerExists)
+        {
+            var clientInfluencer = InfluencerMapper.MapToClientInfluencer(clientId, influencer.Id);
+            await _influencerRepository.AddClientInfluencerAsync(clientInfluencer);
+        }
+
+        return InfluencerMapper.MapToResponseModel(influencer);
     }
+
     public async Task<ElasticInfluencerRecommendationResponseModel> RecommendAsync(
         InfluencerRecommendationFiltersModel filters)
     {

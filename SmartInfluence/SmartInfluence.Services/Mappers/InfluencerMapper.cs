@@ -20,18 +20,7 @@ public static class InfluencerMapper
             PostsCount = influencer.PostsCount,
         };
     }
-
-    public static InfluencerScoreModel MapToScoreModel(RecommendedChannelModel model)
-    {
-        return new InfluencerScoreModel
-        {
-            EngagementRate = model.EngagementRate,
-            BrandFitScore = 0,
-            AvgViews = model.AvgView,
-            AvgComments = model.AvgComment,
-            AvgLikes = model.AvgLike,
-        };
-    }
+    
     public static RecommendedChannelModel MapToRecommendedChannelModel(
         YouTubeApi.UkrainianYouTubeBloggerDto channel,
         double? score,
@@ -39,13 +28,15 @@ public static class InfluencerMapper
     {
         return new RecommendedChannelModel()
         {
-            score = score,
+            Score = score,
             ChannelName = channel.Name,
             ChannelId =  channel.ChannelId,
             ChannelUrl = channel.ChannelUrl,
             CountryCode = channel.CountryCode ?? string.Empty,
+            Language = channel.Language ?? string.Empty,
             Description = channel.Description ?? string.Empty,
             AvatarUrl = channel.AvatarUrl ?? string.Empty,
+            FollowersCount = channel.Fields.SubscriberCount ?? 0,
             EngagementRate = channel.Statictics.EngagementRate,
             VideoCount = channel.Statictics.PerHalfYear.VideoCount,
             PostPerDay = channel.Statictics.PerHalfYear.PostPerDay,
@@ -54,5 +45,50 @@ public static class InfluencerMapper
             AvgComment = channel.Statictics.PerHalfYear.AvgComment,
             AiReview = aiReview
         };
+    }
+
+    public static Influencers MapToInfluencerEntity(RecommendedChannelModel model)
+    {
+        return new Influencers
+        {
+            InfluencerId = model.ChannelId ?? string.Empty,
+            ChannelName = model.ChannelName,
+            Platform = "YouTube",
+            Description = model.Description,
+            Country = model.CountryCode,
+            Lenguage = model.Language,
+            FollowersCount = model.FollowersCount,
+            PostsCount = model.VideoCount
+        };
+    }
+
+    public static ClientInfluencer MapToClientInfluencer(int clientId, int influencerId)
+    {
+        return new ClientInfluencer
+            {
+                ClientId = clientId,
+                InfluencerId = influencerId,
+                Status = Status.Active,
+                PredictedEngagement = CalculatePredictedEngagement(23),
+            };
+    }
+
+    public static InfluencerScore MapToInfluencerScoreEntity(RecommendedChannelModel model, int influencerId)
+    {
+        return new InfluencerScore
+        {
+            InfluencerId = influencerId,
+            EngagementScore = Convert.ToDecimal(model.EngagementRate),
+            BrandFitScore = 0,
+            AvgViews = model.AvgView,
+            AvgLikes = model.AvgLike,
+            AvgComments = model.AvgComment,
+            CalculatedAt = DateTime.UtcNow
+        };
+    }
+
+    public static int CalculatePredictedEngagement(int i)
+    {
+        return i;
     }
 }
