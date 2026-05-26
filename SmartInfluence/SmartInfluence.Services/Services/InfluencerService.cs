@@ -8,10 +8,16 @@ namespace SmartInfluence.Services.Services;
 public class InfluencerService : IInfluencerService
 {
     private readonly IInfluencerRepository _influencerRepository;
+    private readonly IProductQueryAiService _productQueryAiService;
+    private readonly IElasticsearchService _elasticsearchService;
 
-    public InfluencerService(IInfluencerRepository influencerRepository)
+    public InfluencerService(IInfluencerRepository influencerRepository,
+        IProductQueryAiService productQueryAiService,
+        IElasticsearchService elasticsearchService)
     {
         _influencerRepository = influencerRepository;
+        _productQueryAiService = productQueryAiService;
+        _elasticsearchService = elasticsearchService;
     }
 
     public async Task<List<InfluencerResponseModel>> GetAllAsync()
@@ -24,5 +30,21 @@ public class InfluencerService : IInfluencerService
     {
         var influencer = await _influencerRepository.GetByIdAsync(id);
         return influencer == null ? null : InfluencerMapper.MapToResponseModel(influencer);
+    }
+
+    public async Task AddInfluencer()
+    {
+        
+    }
+    public async Task<ElasticInfluencerRecommendationResponseModel> RecommendAsync(
+        InfluencerRecommendationFiltersModel filters)
+    {
+        var criteria = await _productQueryAiService.ParseProductDescriptionAsync(filters.Description);
+        var channels = await _elasticsearchService.RecommendBloggersAsync(criteria, filters);
+
+        return new ElasticInfluencerRecommendationResponseModel
+        {
+            Channels = channels
+        };
     }
 }

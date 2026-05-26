@@ -7,4 +7,5 @@ public class InfluencerRecommendationFiltersModel
     public List<string> Tags { get; set; } = [];
     public int? MinFollowersCount { get; set; }
     public int? MinAvgViews { get; set; }
+    public int ResultCount { get; set; } = 3;
 }

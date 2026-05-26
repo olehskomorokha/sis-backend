@@ -41,13 +41,13 @@ public class ProductQueryAiService : IProductQueryAiService
                 }
 
                 Rules:
-                - Generate ALL tags ONLY in Ukrainian language.
+                - Generate ALL tags in Ukrainian language and its copy in english.
                 - channelTags: general influencer/channel topics or niches.
                 - videoTags: more specific video-level keywords related to the product.
                 - Generate realistic YouTube-related tags.
                 - Do not invent unrelated tags.
-                - Return 5-15 channelTags.
-                - Return 10-25 videoTags.
+                - Return 5-15 channelTags in ukrainian and english.
+                - Return 10-25 videoTags in ukrainian and english.
                 - Do not add explanations.
                 - Do not wrap JSON in markdown.
                 """

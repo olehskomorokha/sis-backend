@@ -56,97 +56,11 @@ public class ElasticsearchService : IElasticsearchService
                || tag.Any(letter => "іїєґІЇЄҐ".Contains(letter));
     }
 
-    public async Task<List<object>> GetByFilters(FiltersModel model)
-    {
-        var size = Math.Clamp(model.ResponseCount ?? 50, 1, 500);
-        var tags = model.Tags?
-            .Where(tag => !string.IsNullOrWhiteSpace(tag))
-            .Select(tag => tag.Trim())
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToList() ?? [];
-
-        var hasCountry = !string.IsNullOrWhiteSpace(model.Country);
-        var hasFollowersRange = model.MinFollowersCount.HasValue || model.MaxFollowersCount.HasValue;
-        var hasTags = tags.Count > 0;
-        var hasFilters = hasCountry || hasFollowersRange || hasTags;
-
-        var filters = new List<Action<QueryDescriptor<object>>>();
-
-        if (hasCountry)
-        {
-            filters.Add(q => q.Term(t => t
-                .Field("countryCode.keyword")
-                .Value(model.Country!)
-                .CaseInsensitive(true)));
-        }
-
-        if (hasFollowersRange)
-        {
-            filters.Add(q => q.Range(r => r
-                .NumberRange(nr =>
-                {
-                    nr.Field("fields.subscriberCount");
-
-                    if (model.MinFollowersCount.HasValue)
-                    {
-                        nr.Gte(model.MinFollowersCount.Value);
-                    }
-
-                    if (model.MaxFollowersCount.HasValue)
-                    {
-                        nr.Lte(model.MaxFollowersCount.Value);
-                    }
-                })));
-        }
-
-        if (hasTags)
-        {
-            var tagWildcardFilters = tags
-                .Select<string, Action<QueryDescriptor<object>>>(tag =>
-                    q => q.Bool(b => b
-                        .Should(
-                            sq => sq.Wildcard(w => w
-                                .Field("interests.channelTags")
-                                .Value($"*{tag}*")
-                                .CaseInsensitive(true)),
-                            sq => sq.Wildcard(w => w
-                                .Field("interests.videoTags")
-                                .Value($"*{tag}*")
-                                .CaseInsensitive(true)))
-                        .MinimumShouldMatch(1)))
-                .ToArray();
-
-            filters.Add(q => q.Bool(bb => bb
-                .Should(tagWildcardFilters)
-                .MinimumShouldMatch(1)));
-        }
-
-        var response = await _client.SearchAsync<object>(s =>
-        {
-            s.Index(YoutuberIndex).Size(size);
-
-            if (!hasFilters)
-            {
-                s.Query(q => q.MatchAll(_ => { }));
-                return;
-            }
-
-            s.Query(q => q.Bool(b => b.Filter(filters.ToArray())));
-        });
-
-        if (!response.IsValidResponse)
-        {
-            return [];
-        }
-
-        return response.Documents.ToList();
-    }
-
     public async Task<List<RecommendedChannelModel>> RecommendBloggersAsync(
         ProductCriteriaModel criteria,
         InfluencerRecommendationFiltersModel filters)
     {
-        const int size = 20;
+        var size = Math.Clamp(filters.ResultCount, 1, 500);
         var channelTags = NormalizeTags(criteria.ChannelTags)
             .Concat(NormalizeTags(filters.Tags))
             .Distinct(StringComparer.OrdinalIgnoreCase)
