@@ -1,5 +1,6 @@
 ﻿using Elastic.Clients.Elasticsearch;
 using Elastic.Clients.Elasticsearch.QueryDsl;
+using SmartInfluence.Collector.YouTube;
 using SmartInfluence.Services.Interfaces;
 using SmartInfluence.Services.Mappers;
 using SmartInfluence.Services.Models;
@@ -60,7 +61,7 @@ public class ElasticsearchService : IElasticsearchService
         ProductCriteriaModel criteria,
         InfluencerRecommendationFiltersModel filters)
     {
-        var size = Math.Clamp(filters.ResultCount, 1, 500);
+        var size = Math.Clamp(filters.ResultCount, 1, 50);
         var channelTags = NormalizeTags(criteria.ChannelTags)
             .Concat(NormalizeTags(filters.Tags))
             .Distinct(StringComparer.OrdinalIgnoreCase)
@@ -69,7 +70,7 @@ public class ElasticsearchService : IElasticsearchService
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray();
 
-        var filterQueries = new List<Action<QueryDescriptor<RecommendedChannelDocument>>>();
+        var filterQueries = new List<Action<QueryDescriptor<YouTubeApi.UkrainianYouTubeBloggerDto>>>();
 
         if (!string.IsNullOrWhiteSpace(filters.Country))
         {
@@ -95,7 +96,12 @@ public class ElasticsearchService : IElasticsearchService
                     .Gte(filters.MinAvgViews.Value))));
         }
 
-        var shouldQueries = new List<Action<QueryDescriptor<RecommendedChannelDocument>>>();
+        filterQueries.Add(q => q.Range(r => r
+            .NumberRange(nr => nr
+                .Field("statictics.perHalfYear.videoCount")
+                .Gte(4))));
+
+        var shouldQueries = new List<Action<QueryDescriptor<YouTubeApi.UkrainianYouTubeBloggerDto>>>();
 
         foreach (var tag in channelTags)
         {
@@ -130,7 +136,7 @@ public class ElasticsearchService : IElasticsearchService
                 .Boost(2)));
         }
 
-        var response = await _client.SearchAsync<RecommendedChannelDocument>(s =>
+        var response = await _client.SearchAsync<YouTubeApi.UkrainianYouTubeBloggerDto>(s =>
         {
             s.Index(YoutuberIndex).Size(size);
 
@@ -154,14 +160,14 @@ public class ElasticsearchService : IElasticsearchService
                 }
             }));
         });
-
         if (!response.IsValidResponse)
         {
             return [];
         }
 
-        return response.Documents
-            .Select(MapToRecommendedChannelModel)
+        return response.Hits
+            .Where(hit => hit.Source is not null)
+            .Select(hit => InfluencerMapper.MapToRecommendedChannelModel(hit.Source!, hit.Score))
             .ToList();
     }
 
@@ -189,47 +195,4 @@ public class ElasticsearchService : IElasticsearchService
             .Select(tag => tag.Trim())
             .Distinct(StringComparer.OrdinalIgnoreCase) ?? [];
     }
-
-    private static RecommendedChannelModel MapToRecommendedChannelModel(RecommendedChannelDocument document)
-    {
-        return new RecommendedChannelModel
-        {
-            ChannelName = document.Name ?? string.Empty,
-            ChannelUrl = document.ChannelUrl ?? string.Empty,
-            CountryCode = document.CountryCode ?? string.Empty,
-            Description = document.Description ?? string.Empty,
-            AvatarUrl = document.AvatarUrl ?? string.Empty,
-            EngagementRate = document.Statictics?.EngagementRate ?? 0,
-            VideoCount = document.Statictics?.PerHalfYear?.VideoCount ?? 0,
-            PostPerDay = document.Statictics?.PerHalfYear?.PostPerDay ?? 0,
-            AvgLike = document.Statictics?.PerHalfYear?.AvgLike ?? 0,
-            AvgView = document.Statictics?.PerHalfYear?.AvgView ?? 0,
-            AvgComment = document.Statictics?.PerHalfYear?.AvgComment ?? 0
-        };
-    }
-}
-
-public class RecommendedChannelDocument
-{
-    public string? Name { get; set; }
-    public string? ChannelUrl { get; set; }
-    public string? CountryCode { get; set; }
-    public string? Description { get; set; }
-    public string? AvatarUrl { get; set; }
-    public RecommendedChannelStaticticsDocument? Statictics { get; set; }
-}
-
-public class RecommendedChannelStaticticsDocument
-{
-    public float EngagementRate { get; set; }
-    public RecommendedChannelPerHalfYearDocument? PerHalfYear { get; set; }
-}
-
-public class RecommendedChannelPerHalfYearDocument
-{
-    public int VideoCount { get; set; }
-    public float PostPerDay { get; set; }
-    public int AvgLike { get; set; }
-    public int AvgView { get; set; }
-    public int AvgComment { get; set; }
 }

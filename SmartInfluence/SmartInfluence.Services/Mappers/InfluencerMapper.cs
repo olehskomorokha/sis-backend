@@ -32,11 +32,16 @@ public static class InfluencerMapper
             AvgLikes = model.AvgLike,
         };
     }
-    public static RecommendedChannelModel MapToRecommendedChannelModel(YouTubeApi.UkrainianYouTubeBloggerDto channel)
+    public static RecommendedChannelModel MapToRecommendedChannelModel(
+        YouTubeApi.UkrainianYouTubeBloggerDto channel,
+        double? score,
+        string? aiReview = null)
     {
         return new RecommendedChannelModel()
         {
+            score = score,
             ChannelName = channel.Name,
+            ChannelId =  channel.ChannelId,
             ChannelUrl = channel.ChannelUrl,
             CountryCode = channel.CountryCode ?? string.Empty,
             Description = channel.Description ?? string.Empty,
@@ -46,7 +51,8 @@ public static class InfluencerMapper
             PostPerDay = channel.Statictics.PerHalfYear.PostPerDay,
             AvgLike = channel.Statictics.PerHalfYear.AvgLike,
             AvgView = channel.Statictics.PerHalfYear.AvgView,
-            AvgComment = channel.Statictics.PerHalfYear.AvgComment
+            AvgComment = channel.Statictics.PerHalfYear.AvgComment,
+            AiReview = aiReview
         };
     }
 }

@@ -69,7 +69,7 @@ public class ProductQueryAiService : IProductQueryAiService
 
     public async Task<string> AiChannelReviewAsync(string channelId)
     {
-        var channel = _elasticsearchService.GetById(channelId);
+        var channel = await _elasticsearchService.GetById(channelId);
         if (channel == null)
         {
             return string.Empty;
