@@ -70,28 +70,12 @@ public class InfluencerService : IInfluencerService
         return InfluencerMapper.MapToResponseModel(influencer);
     }
 
-    public async Task<ElasticInfluencerRecommendationResponseModel> RecommendAsync(
+    public async Task<List<RecommendedChannelModel>> RecommendAsync(
         InfluencerRecommendationFiltersModel filters)
     {
         var criteria = await _productQueryAiService.ParseProductDescriptionAsync(filters.Description);
         var channels = await _elasticsearchService.RecommendBloggersAsync(criteria, filters);
-
-        var aiReviewTasks = channels.Select(async channel =>
-        {
-            if (string.IsNullOrWhiteSpace(channel.ChannelId))
-            {
-                channel.AiReview = string.Empty;
-                return;
-            }
-
-            channel.AiReview = await _productQueryAiService.AiChannelReviewAsync(channel.ChannelId);
-        });
-
-        await Task.WhenAll(aiReviewTasks);
-
-        return new ElasticInfluencerRecommendationResponseModel
-        {
-            Channels = channels
-        };
+        
+        return channels;
     }
 }

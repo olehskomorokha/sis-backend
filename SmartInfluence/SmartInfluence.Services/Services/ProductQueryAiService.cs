@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using Microsoft.Extensions.Configuration;
 using OpenAI.Chat;
 using SmartInfluence.Services.Interfaces;
@@ -77,10 +78,7 @@ public class ProductQueryAiService : IProductQueryAiService
 
         var client = new ChatClient(model: _model, apiKey: _apiKey);
 
-        var channelJson = JsonSerializer.Serialize(channel, new JsonSerializerOptions
-        {
-            WriteIndented = true
-        });
+        var channelJson = JsonSerializer.Serialize(BuildReviewInput(channel));
 
         var messages = new List<ChatMessage>
         {
@@ -110,5 +108,85 @@ public class ProductQueryAiService : IProductQueryAiService
         var completion = await client.CompleteChatAsync(messages);
 
         return completion.Value.Content[0].Text;
+    }
+
+    private static object BuildReviewInput(object channel)
+    {
+        var root = JsonNode.Parse(JsonSerializer.Serialize(channel))?.AsObject();
+        if (root == null)
+        {
+            return new { };
+        }
+
+        return new
+        {
+            Name = GetString(root, "name"),
+            Description = GetString(root, "description"),
+            CountryCode = GetString(root, "countryCode"),
+            ChannelTags = GetStringArray(root, "interests", "channelTags"),
+            VideoTags = GetStringArray(root, "interests", "videoTags"),
+            SubscribersCount = GetInt(root, "fields", "subscriberCount"),
+            AvgViews = GetInt(root, "statictics", "perHalfYear", "avgView"),
+            AvgLikes = GetInt(root, "statictics", "perHalfYear", "avgLike"),
+            AvgComments = GetInt(root, "statictics", "perHalfYear", "avgComment"),
+            VideoCount = GetInt(root, "statictics", "perHalfYear", "videoCount")
+        };
+    }
+
+    private static string? GetString(JsonObject root, params string[] path)
+    {
+        return GetNode(root, path)?.GetValue<string>();
+    }
+
+    private static int? GetInt(JsonObject root, params string[] path)
+    {
+        var node = GetNode(root, path);
+        if (node == null)
+        {
+            return null;
+        }
+
+        if (node is JsonValue value && value.TryGetValue<int>(out var intValue))
+        {
+            return intValue;
+        }
+
+        if (node is JsonValue longValue && longValue.TryGetValue<long>(out var longResult))
+        {
+            return (int)longResult;
+        }
+
+        if (node is JsonValue doubleValue && doubleValue.TryGetValue<double>(out var doubleResult))
+        {
+            return (int)Math.Round(doubleResult);
+        }
+
+        return null;
+    }
+
+    private static string[] GetStringArray(JsonObject root, params string[] path)
+    {
+        return GetNode(root, path) is JsonArray array
+            ? array.Select(node => node?.GetValue<string>())
+                .Where(value => !string.IsNullOrWhiteSpace(value))
+                .Cast<string>()
+                .ToArray()
+            : [];
+    }
+
+    private static JsonNode? GetNode(JsonObject root, params string[] path)
+    {
+        JsonNode? current = root;
+
+        foreach (var segment in path)
+        {
+            current = current?[segment];
+            if (current == null)
+            {
+                return null;
+            }
+        }
+
+        return current;
     }
 }
