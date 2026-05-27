@@ -20,10 +20,24 @@ public class InfluencerService : IInfluencerService
         _elasticsearchService = elasticsearchService;
     }
 
+
+    public async Task<List<InfluencerResponseModel>> GetByClientIdAsync(int clientId)
+    {
+        var influencers = await _influencerRepository.GetByClientIdAsync(clientId);
+        var scores = await _influencerRepository.GetLatestScoresByInfluencerIdsAsync(
+            influencers.Select(x => x.Id));
+        var scoresByInfluencerId = scores.ToDictionary(x => x.InfluencerId);
+
+        return influencers
+            .Select(influencer => InfluencerMapper.MapToResponseModel(
+                influencer,
+                scoresByInfluencerId.GetValueOrDefault(influencer.Id)))
+            .ToList();
+    }
     public async Task<List<InfluencerResponseModel>> GetAllAsync()
     {
         var influencers = await _influencerRepository.GetAllAsync();
-        return influencers.Select(InfluencerMapper.MapToResponseModel).ToList();
+        return influencers.Select(influencer => InfluencerMapper.MapToResponseModel(influencer)).ToList();
     }
 
     public async Task<InfluencerResponseModel?> GetByIdAsync(int id)

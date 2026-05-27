@@ -27,6 +27,7 @@ public class ClientService : IClientService
         _configuration = configuration;
     }
 
+    
     public async Task<List<ClientResponseModel>> GetAllAsync()
     {
         var clients = await _clientRepository.GetAllAsync();
@@ -65,7 +66,15 @@ public class ClientService : IClientService
     public async Task<List<InfluencerResponseModel>> GetInfluencersByClientIdAsync(int clientId)
     {
         var influencers = await _influencerRepository.GetByClientIdAsync(clientId);
-        return influencers.Select(InfluencerMapper.MapToResponseModel).ToList();
+        var scores = await _influencerRepository.GetLatestScoresByInfluencerIdsAsync(
+            influencers.Select(x => x.Id));
+        var scoresByInfluencerId = scores.ToDictionary(x => x.InfluencerId);
+
+        return influencers
+            .Select(influencer => InfluencerMapper.MapToResponseModel(
+                influencer,
+                scoresByInfluencerId.GetValueOrDefault(influencer.Id)))
+            .ToList();
     }
 
     public async Task<string> LoginAsync(LoginClientModel model)

@@ -9,4 +9,5 @@ public class InfluencerResponseModel
     public string Lenguage { get; set; }
     public int FollowersCount { get; set; }
     public int PostsCount { get; set; }
+    public InfluencerScoreModel? Score { get; set; }
 }

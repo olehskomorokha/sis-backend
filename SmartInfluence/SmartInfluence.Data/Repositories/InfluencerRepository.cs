@@ -37,6 +37,24 @@ public class InfluencerRepository : IInfluencerRepository
             .ToListAsync();
     }
 
+    public async Task<List<InfluencerScore>> GetLatestScoresByInfluencerIdsAsync(IEnumerable<int> influencerIds)
+    {
+        var ids = influencerIds.Distinct().ToList();
+        if (ids.Count == 0)
+        {
+            return [];
+        }
+
+        return await _dbContext.InfluencerScores
+            .Where(x => ids.Contains(x.InfluencerId))
+            .GroupBy(x => x.InfluencerId)
+            .Select(group => group
+                .OrderByDescending(x => x.CalculatedAt)
+                .ThenByDescending(x => x.Id)
+                .First())
+            .ToListAsync();
+    }
+
     public Task<bool> ClientInfluencerExistsAsync(int clientId, int influencerId)
     {
         return _dbContext.ClientInfluencers

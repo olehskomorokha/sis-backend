@@ -7,7 +7,9 @@ namespace SmartInfluence.Services.Mappers;
 
 public static class InfluencerMapper
 {
-    public static InfluencerResponseModel MapToResponseModel(Influencers influencer)
+    public static InfluencerResponseModel MapToResponseModel(
+        Influencers influencer,
+        InfluencerScore? score = null)
     {
         return new InfluencerResponseModel
         {
@@ -18,6 +20,20 @@ public static class InfluencerMapper
             Lenguage = influencer.Lenguage,
             FollowersCount = influencer.FollowersCount,
             PostsCount = influencer.PostsCount,
+            Score = score == null ? null : MapToScoreModel(score)
+        };
+    }
+
+    public static InfluencerScoreModel MapToScoreModel(InfluencerScore score)
+    {
+        return new InfluencerScoreModel
+        {
+            EngagementRate = Convert.ToSingle(score.EngagementScore),
+            BrandFitScore = score.BrandFitScore,
+            AvgViews = score.AvgViews,
+            AvgLikes = score.AvgLikes,
+            AvgComments = score.AvgComments,
+            CalculatedAt = score.CalculatedAt
         };
     }
     

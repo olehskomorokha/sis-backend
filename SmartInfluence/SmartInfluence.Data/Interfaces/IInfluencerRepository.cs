@@ -7,6 +7,7 @@ public interface IInfluencerRepository : IRepository<Influencers>
     public Task<Influencers?> GetByIdAsync(int id);
     public Task<Influencers?> GetByInfluencerIdAsync(string influencerId);
     public Task<List<Influencers>> GetByClientIdAsync(int clientId);
+    public Task<List<InfluencerScore>> GetLatestScoresByInfluencerIdsAsync(IEnumerable<int> influencerIds);
     public Task<bool> ClientInfluencerExistsAsync(int clientId, int influencerId);
     public Task CreateAsync(Influencers influencer);
     public Task AddClientInfluencerAsync(ClientInfluencer model);
