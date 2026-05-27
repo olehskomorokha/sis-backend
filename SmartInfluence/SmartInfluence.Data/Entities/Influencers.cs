@@ -9,7 +9,7 @@ public class Influencers
     public string Description { get; set; }
     public string Country { get; set; }
     public string Lenguage { get; set; }
+    public string AvatarUrl { get; set; }
+    public string AiReview { get; set; }
     public int FollowersCount { get; set; }
-    public int PostsCount { get; set; }
-    
 }

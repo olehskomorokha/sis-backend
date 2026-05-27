@@ -33,6 +33,12 @@ public class ClientService : IClientService
         var clients = await _clientRepository.GetAllAsync();
         return clients.Select(ClientMapper.MapToResponseModel).ToList();
     }
+
+    public async Task<ClientResponseModel> GetByIdAsync(int id)
+    {
+        var client = await _clientRepository.GetByIdAsync(id);
+        return ClientMapper.MapToResponseModel(client);
+    }
     
     public async Task CreateAsync(CreateClientModel model)
     {

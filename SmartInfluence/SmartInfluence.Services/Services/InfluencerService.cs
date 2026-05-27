@@ -1,3 +1,4 @@
+using SmartInfluence.Data.Entities;
 using SmartInfluence.Data.Interfaces;
 using SmartInfluence.Services.Interfaces;
 using SmartInfluence.Services.Mappers;
@@ -64,13 +65,20 @@ public class InfluencerService : IInfluencerService
         }
 
         var influencer = await _influencerRepository.GetByInfluencerIdAsync(model.ChannelId);
+        InfluencerScore? score = null;
+
         if (influencer == null)
         {
             influencer = InfluencerMapper.MapToInfluencerEntity(model);
             await _influencerRepository.CreateAsync(influencer);
 
-            var score = InfluencerMapper.MapToInfluencerScoreEntity(model, influencer.Id);
+            score = InfluencerMapper.MapToInfluencerScoreEntity(model, influencer.Id);
             await _influencerRepository.AddScoreAsync(score);
+        }
+        else
+        {
+            score = (await _influencerRepository.GetLatestScoresByInfluencerIdsAsync([influencer.Id]))
+                .FirstOrDefault();
         }
 
         var clientInfluencerExists = await _influencerRepository
@@ -81,7 +89,7 @@ public class InfluencerService : IInfluencerService
             await _influencerRepository.AddClientInfluencerAsync(clientInfluencer);
         }
 
-        return InfluencerMapper.MapToResponseModel(influencer);
+        return InfluencerMapper.MapToResponseModel(influencer, score);
     }
 
     public async Task<List<RecommendedChannelModel>> RecommendAsync(

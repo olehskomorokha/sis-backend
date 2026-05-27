@@ -15,11 +15,12 @@ public static class InfluencerMapper
         {
             Id = influencer.Id,
             Platform = influencer.Platform,
+            AvatarUrl = influencer.AvatarUrl,
+            AiReview =  influencer.AiReview,
+            ChannelName = influencer.ChannelName,
             Description = influencer.Description,
             Country = influencer.Country,
-            Lenguage = influencer.Lenguage,
             FollowersCount = influencer.FollowersCount,
-            PostsCount = influencer.PostsCount,
             Score = score == null ? null : MapToScoreModel(score)
         };
     }
@@ -73,8 +74,9 @@ public static class InfluencerMapper
             Description = model.Description,
             Country = model.CountryCode,
             Lenguage = model.Language,
-            FollowersCount = model.FollowersCount,
-            PostsCount = model.VideoCount
+            AvatarUrl = model.AvatarUrl ?? string.Empty,
+            AiReview = model.AiReview,
+            FollowersCount = model.FollowersCount
         };
     }
 
@@ -99,6 +101,7 @@ public static class InfluencerMapper
             AvgViews = model.AvgView,
             AvgLikes = model.AvgLike,
             AvgComments = model.AvgComment,
+            PostsCount = model.VideoCount,
             CalculatedAt = DateTime.UtcNow
         };
     }

@@ -24,6 +24,12 @@ public class ClientController : ControllerBase
         return Ok(await _clientService.GetAllAsync());
     }
 
+    [HttpGet("{id}")]
+    public async Task<ActionResult<ClientResponseModel>> GetByIdAsync(int id)
+    {
+        return Ok(await _clientService.GetByIdAsync(id));
+    }
+
     [Authorize]
     [HttpGet("influencers")]
     public async Task<ActionResult<List<InfluencerResponseModel>>> GetInfluencersAsync()
@@ -69,7 +75,7 @@ public class ClientController : ControllerBase
         try
         {
             var accessToken = await _clientService.LoginAsync(model);
-            return Ok(new { accessToken });
+            return Ok(accessToken);
         }
         catch (LoginException ex)
         {

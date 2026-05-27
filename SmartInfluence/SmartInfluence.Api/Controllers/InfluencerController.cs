@@ -16,7 +16,7 @@ public class InfluencerController : ControllerBase
         _influencerService = influencerService;
     }
 
-    [HttpGet("client/{clientId:int}")]
+    [HttpGet("clientInfluencers/{clientId:int}")]
     public async Task<ActionResult<List<InfluencerResponseModel>>> GetByClientIdAsync(int clientId)
     {
         var influencers = await _influencerService.GetByClientIdAsync(clientId);
