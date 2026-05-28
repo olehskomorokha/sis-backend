@@ -5,7 +5,8 @@ namespace SmartInfluence.Services.Models;
 public class ClientInfluencerModel
 {
     public int Id { get; set; }
-    public string InfluencerId { get; set; }
+    public int InfluenceId { get; set; }
+    public string ChannelId { get; set; }
     public string ChannelName { get; set; }
     public string ChannelUrl { get; set; }
     public string Platform { get; set; }

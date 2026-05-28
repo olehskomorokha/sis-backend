@@ -12,7 +12,8 @@ public class ClientInfluencerMapper
         return new ClientInfluencerModel
         {
             Id = clientInfluencer.Id,
-            InfluencerId = influencers.InfluencerId,
+            InfluenceId = influencers.Id,
+            ChannelId = influencers.InfluencerId,
             ChannelName = influencers.ChannelName,
             ChannelUrl = influencers.ChannelUrl,
             Platform = influencers.Platform,

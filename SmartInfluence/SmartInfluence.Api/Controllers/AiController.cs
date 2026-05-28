@@ -22,7 +22,7 @@ public class AiController : ControllerBase
         return Ok(criteriamodel);
     }
 
-    [HttpGet("rew/{channelId}")]
+    [HttpGet("review/{channelId}")]
     public async Task<ActionResult<string>> ChannelReview(string channelId)
     {
         return await _productQueryAiService.AiChannelReviewAsync(channelId);
