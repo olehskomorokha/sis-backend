@@ -17,7 +17,6 @@ public static class InfluencerMapper
             Platform = influencer.Platform,
             ChannelUrl = influencer.ChannelUrl,
             AvatarUrl = influencer.AvatarUrl,
-            AiReview =  influencer.AiReview,
             ChannelName = influencer.ChannelName,
             Description = influencer.Description,
             Country = influencer.Country,
@@ -30,10 +29,10 @@ public static class InfluencerMapper
     {
         return new InfluencerScoreModel
         {
-            EngagementRate = Convert.ToSingle(score.EngagementScore),
-            BrandFitScore = score.BrandFitScore,
+            EngagementRate = Convert.ToSingle(score.EngagementRate),
             AvgViews = score.AvgViews,
             AvgLikes = score.AvgLikes,
+            PostCount = score.PostsCount,
             AvgComments = score.AvgComments,
             CalculatedAt = score.CalculatedAt
         };
@@ -60,8 +59,7 @@ public static class InfluencerMapper
             PostPerDay = channel.Statictics.PerHalfYear.PostPerDay,
             AvgLike = channel.Statictics.PerHalfYear.AvgLike,
             AvgView = channel.Statictics.PerHalfYear.AvgView,
-            AvgComment = channel.Statictics.PerHalfYear.AvgComment,
-            AiReview = aiReview
+            AvgComment = channel.Statictics.PerHalfYear.AvgComment
         };
     }
 
@@ -76,30 +74,19 @@ public static class InfluencerMapper
             Description = model.Description,
             Country = model.CountryCode,
             Lenguage = model.Language,
-            AvatarUrl = model.AvatarUrl ?? string.Empty,
-            AiReview = model.AiReview,
+            AvatarUrl = model.AvatarUrl,
             FollowersCount = model.FollowersCount
         };
     }
 
-    public static ClientInfluencer MapToClientInfluencer(int clientId, int influencerId)
-    {
-        return new ClientInfluencer
-            {
-                ClientId = clientId,
-                InfluencerId = influencerId,
-                Status = Status.Active,
-                PredictedEngagement = CalculatePredictedEngagement(23),
-            };
-    }
+    
 
     public static InfluencerScore MapToInfluencerScoreEntity(RecommendedChannelModel model, int influencerId)
     {
         return new InfluencerScore
         {
             InfluencerId = influencerId,
-            EngagementScore = Convert.ToDecimal(model.EngagementRate),
-            BrandFitScore = 0,
+            EngagementRate = Convert.ToDecimal(model.EngagementRate),
             AvgViews = model.AvgView,
             AvgLikes = model.AvgLike,
             AvgComments = model.AvgComment,
@@ -108,8 +95,5 @@ public static class InfluencerMapper
         };
     }
 
-    public static int CalculatePredictedEngagement(int i)
-    {
-        return i;
-    }
+    
 }

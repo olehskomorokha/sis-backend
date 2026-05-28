@@ -85,7 +85,7 @@ public class InfluencerService : IInfluencerService
             .ClientInfluencerExistsAsync(clientId, influencer.Id);
         if (!clientInfluencerExists)
         {
-            var clientInfluencer = InfluencerMapper.MapToClientInfluencer(clientId, influencer.Id);
+            var clientInfluencer = ClientInfluencerMapper.MapToClientInfluencer(clientId, model, influencer.Id);
             await _influencerRepository.AddClientInfluencerAsync(clientInfluencer);
         }
 

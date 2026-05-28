@@ -11,6 +11,5 @@ public class Influencers
     public string Country { get; set; }
     public string Lenguage { get; set; }
     public string AvatarUrl { get; set; }
-    public string AiReview { get; set; }
     public int FollowersCount { get; set; }
 }

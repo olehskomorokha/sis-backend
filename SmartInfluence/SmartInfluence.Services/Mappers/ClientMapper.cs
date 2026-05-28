@@ -12,7 +12,6 @@ public static class ClientMapper
             Id = client.Id,
             Brand = client.Brand,
             Email = client.Email,
-            TargetCountry = client.TargetCountry,
             CreatedAt = client.CreatedAt
         };
     }

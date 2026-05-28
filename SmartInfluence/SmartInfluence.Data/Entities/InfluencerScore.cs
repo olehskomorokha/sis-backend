@@ -4,9 +4,7 @@ public class InfluencerScore
 {
     public int Id { get; set; }
     public int InfluencerId { get; set; }
-    public decimal EngagementScore { get; set; }
-    public decimal BrandFitScore { get; set; }
-    
+    public decimal EngagementRate { get; set; }
     public int PostsCount { get; set; }
     public decimal AvgViews { get; set; }
     public decimal AvgLikes { get; set; }

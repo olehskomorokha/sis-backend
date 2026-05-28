@@ -124,11 +124,6 @@ public class ClientService : IClientService
         {
             client.Email = model.Email;
         }
-
-        if (!string.IsNullOrWhiteSpace(model.TargetCountry))
-        {
-            client.TargetCountry = model.TargetCountry;
-        }
     }
 
     private string GetAccessToken(int userId, string email)
