@@ -15,6 +15,7 @@ public static class InfluencerMapper
         {
             Id = influencer.Id,
             Platform = influencer.Platform,
+            ChannelUrl = influencer.ChannelUrl,
             AvatarUrl = influencer.AvatarUrl,
             AiReview =  influencer.AiReview,
             ChannelName = influencer.ChannelName,
@@ -70,6 +71,7 @@ public static class InfluencerMapper
         {
             InfluencerId = model.ChannelId ?? string.Empty,
             ChannelName = model.ChannelName,
+            ChannelUrl = model.ChannelUrl,
             Platform = "YouTube",
             Description = model.Description,
             Country = model.CountryCode,

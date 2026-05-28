@@ -5,6 +5,7 @@ public class Influencers
     public int Id { get; set; }
     public string InfluencerId { get; set; }
     public string ChannelName { get; set; }
+    public string ChannelUrl { get; set; }
     public string Platform { get; set; }
     public string Description { get; set; }
     public string Country { get; set; }
