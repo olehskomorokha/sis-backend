@@ -10,7 +10,7 @@ public class ClientInfluencer
     public decimal BrandFitScore { get; set; }
     
     public string AiReview { get; set; }
-    public Status Status { get; set; }
+    public Status Status { get; set; } = Status.Active;
     public decimal PredictedEngagement { get; set; }
     public Client? Client { get; set; }
     public Influencers? Influencer { get; set; }

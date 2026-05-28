@@ -13,4 +13,6 @@ public interface IInfluencerRepository : IRepository<Influencers>
     public Task AddClientInfluencerAsync(ClientInfluencer model);
     public Task UpdateAsync(Influencers influencer);
     public Task AddScoreAsync(InfluencerScore score);
+    public Task DeleteScoresByInfluencerIdAsync(int influencerId);
+    public Task DeleteAsync(Influencers influencer);
 }

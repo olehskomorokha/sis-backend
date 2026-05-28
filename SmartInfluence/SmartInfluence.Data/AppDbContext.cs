@@ -34,6 +34,10 @@ public class AppDbContext : DbContext
             .IsUnique();
 
         modelBuilder.Entity<ClientInfluencer>()
+            .Property(x => x.Status)
+            .HasDefaultValue(Status.Active);
+
+        modelBuilder.Entity<ClientInfluencer>()
             .HasIndex(x => new { x.ClientId, x.InfluencerId })
             .IsUnique();
     }

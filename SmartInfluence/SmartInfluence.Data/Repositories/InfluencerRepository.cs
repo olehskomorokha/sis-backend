@@ -84,4 +84,25 @@ public class InfluencerRepository : IInfluencerRepository
         _dbContext.ClientInfluencers.Add(model);
         await _dbContext.SaveChangesAsync();
     }
+
+    public async Task DeleteScoresByInfluencerIdAsync(int influencerId)
+    {
+        var scores = await _dbContext.InfluencerScores
+            .Where(x => x.InfluencerId == influencerId)
+            .ToListAsync();
+
+        if (scores.Count == 0)
+        {
+            return;
+        }
+
+        _dbContext.InfluencerScores.RemoveRange(scores);
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task DeleteAsync(Influencers influencer)
+    {
+        _dbContext.Influencers.Remove(influencer);
+        await _dbContext.SaveChangesAsync();
+    }
 }
