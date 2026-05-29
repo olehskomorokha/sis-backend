@@ -8,4 +8,5 @@ public interface IClientRepository : IRepository<Client>
     public Task<Client?> GetByEmailAsync(string email);
     public Task CreateAsync(Client client);
     public Task UpdateAsync(Client client);
+    public Task DeleteAsync(int id);
 }

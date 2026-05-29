@@ -20,9 +20,7 @@ namespace SmartInfluence.Data.Migrations
                     Brand = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Password = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Budget = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true),
                     TargetCountry = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    TargetAudience = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
@@ -36,35 +34,19 @@ namespace SmartInfluence.Data.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    InfluencerId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    InfluencerId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     ChannelName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Platform = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Country = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Lenguage = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    FollowersCount = table.Column<int>(type: "int", nullable: false),
-                    PostsCount = table.Column<int>(type: "int", nullable: false),
-                    AvgViews = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
-                    AvgLikes = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
-                    AvgComments = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false)
+                    AvatarUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    AiReview = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    FollowersCount = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Influencers", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Tags",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ChannelTagName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    VideosTagName = table.Column<string>(type: "nvarchar(max)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Tags", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -73,7 +55,7 @@ namespace SmartInfluence.Data.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    CampaignId = table.Column<int>(type: "int", nullable: false),
+                    ClientId = table.Column<int>(type: "int", nullable: false),
                     InfluencerId = table.Column<int>(type: "int", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false),
                     PredictedEngagement = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false)
@@ -82,8 +64,8 @@ namespace SmartInfluence.Data.Migrations
                 {
                     table.PrimaryKey("PK_ClientInfluencers", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ClientInfluencers_Clients_CampaignId",
-                        column: x => x.CampaignId,
+                        name: "FK_ClientInfluencers_Clients_ClientId",
+                        column: x => x.ClientId,
                         principalTable: "Clients",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -104,6 +86,10 @@ namespace SmartInfluence.Data.Migrations
                     InfluencerId = table.Column<int>(type: "int", nullable: false),
                     EngagementScore = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     BrandFitScore = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    PostsCount = table.Column<int>(type: "int", nullable: false),
+                    AvgViews = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    AvgLikes = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    AvgComments = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     CalculatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
@@ -117,34 +103,11 @@ namespace SmartInfluence.Data.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateTable(
-                name: "InfluencerTags",
-                columns: table => new
-                {
-                    InfluencerId = table.Column<int>(type: "int", nullable: false),
-                    TagId = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_InfluencerTags", x => new { x.InfluencerId, x.TagId });
-                    table.ForeignKey(
-                        name: "FK_InfluencerTags_Influencers_InfluencerId",
-                        column: x => x.InfluencerId,
-                        principalTable: "Influencers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_InfluencerTags_Tags_TagId",
-                        column: x => x.TagId,
-                        principalTable: "Tags",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
             migrationBuilder.CreateIndex(
-                name: "IX_ClientInfluencers_CampaignId",
+                name: "IX_ClientInfluencers_ClientId_InfluencerId",
                 table: "ClientInfluencers",
-                column: "CampaignId");
+                columns: new[] { "ClientId", "InfluencerId" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_ClientInfluencers_InfluencerId",
@@ -152,14 +115,15 @@ namespace SmartInfluence.Data.Migrations
                 column: "InfluencerId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Influencers_InfluencerId",
+                table: "Influencers",
+                column: "InfluencerId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_InfluencerScores_InfluencerId",
                 table: "InfluencerScores",
                 column: "InfluencerId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_InfluencerTags_TagId",
-                table: "InfluencerTags",
-                column: "TagId");
         }
 
         /// <inheritdoc />
@@ -172,16 +136,10 @@ namespace SmartInfluence.Data.Migrations
                 name: "InfluencerScores");
 
             migrationBuilder.DropTable(
-                name: "InfluencerTags");
-
-            migrationBuilder.DropTable(
                 name: "Clients");
 
             migrationBuilder.DropTable(
                 name: "Influencers");
-
-            migrationBuilder.DropTable(
-                name: "Tags");
         }
     }
 }

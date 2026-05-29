@@ -14,23 +14,33 @@ namespace SmartInfluence.Services.Services;
 public class ClientService : IClientService
 {
     private readonly IClientRepository _clientRepository;
+    private readonly IClientInfluencerRepository _clientInfluencerRepository;
     private readonly IInfluencerRepository _influencerRepository;
     private readonly IConfiguration _configuration;
 
     public ClientService(
         IClientRepository clientRepository,
+        IClientInfluencerRepository clientInfluencerRepository,
         IInfluencerRepository influencerRepository,
         IConfiguration configuration)
     {
         _clientRepository = clientRepository;
+        _clientInfluencerRepository = clientInfluencerRepository;
         _influencerRepository = influencerRepository;
         _configuration = configuration;
     }
 
+    
     public async Task<List<ClientResponseModel>> GetAllAsync()
     {
         var clients = await _clientRepository.GetAllAsync();
         return clients.Select(ClientMapper.MapToResponseModel).ToList();
+    }
+
+    public async Task<ClientResponseModel> GetByIdAsync(int id)
+    {
+        var client = await _clientRepository.GetByIdAsync(id);
+        return ClientMapper.MapToResponseModel(client);
     }
     
     public async Task CreateAsync(CreateClientModel model)
@@ -65,7 +75,15 @@ public class ClientService : IClientService
     public async Task<List<InfluencerResponseModel>> GetInfluencersByClientIdAsync(int clientId)
     {
         var influencers = await _influencerRepository.GetByClientIdAsync(clientId);
-        return influencers.Select(InfluencerMapper.MapToResponseModel).ToList();
+        var scores = await _influencerRepository.GetLatestScoresByInfluencerIdsAsync(
+            influencers.Select(x => x.Id));
+        var scoresByInfluencerId = scores.ToDictionary(x => x.InfluencerId);
+
+        return influencers
+            .Select(influencer => InfluencerMapper.MapToResponseModel(
+                influencer,
+                scoresByInfluencerId.GetValueOrDefault(influencer.Id)))
+            .ToList();
     }
 
     public async Task<string> LoginAsync(LoginClientModel model)
@@ -109,22 +127,6 @@ public class ClientService : IClientService
         {
             client.Email = model.Email;
         }
-
-        if (model.Budget.HasValue)
-        {
-            client.Budget = model.Budget;
-        }
-
-        if (!string.IsNullOrWhiteSpace(model.TargetCountry))
-        {
-            client.TargetCountry = model.TargetCountry;
-        }
-
-        if (!string.IsNullOrWhiteSpace(model.TargetAudience))
-        {
-            client.TargetAudience = model.TargetAudience;
-        }
-        
     }
 
     private string GetAccessToken(int userId, string email)
@@ -145,5 +147,29 @@ public class ClientService : IClientService
                 SecurityAlgorithms.HmacSha256));
 
         return new JwtSecurityTokenHandler().WriteToken(jwt);
+    }
+    
+    public async Task DeleteAsync(int id)
+    {
+        var client = await _clientRepository.GetByIdAsync(id);
+        if (client == null)
+        {
+            return;
+        }
+
+        var influencers = await _influencerRepository.GetByClientIdAsync(id);
+        await _clientRepository.DeleteAsync(id);
+
+        foreach (var influencer in influencers.DistinctBy(x => x.Id))
+        {
+            var stillUsedByAnyClient = await _clientInfluencerRepository.ExistsByInfluencerIdAsync(influencer.Id);
+            if (stillUsedByAnyClient)
+            {
+                continue;
+            }
+
+            await _influencerRepository.DeleteScoresByInfluencerIdAsync(influencer.Id);
+            await _influencerRepository.DeleteAsync(influencer);
+        }
     }
 }

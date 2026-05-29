@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartInfluence.Services.Interfaces;
 using SmartInfluence.Services.Models;
@@ -9,15 +10,17 @@ namespace SmartInfluence.Api.Controllers;
 public class InfluencerController : ControllerBase
 {
     private readonly IInfluencerService _influencerService;
-    private readonly IInfluencerRecommendationService _influencerRecommendationService;
 
-    public InfluencerController(
-        IInfluencerService influencerService,
-        IInfluencerRecommendationService influencerRecommendationService
-        )
+    public InfluencerController(IInfluencerService influencerService)
     {
         _influencerService = influencerService;
-        _influencerRecommendationService = influencerRecommendationService;
+    }
+
+    [HttpGet("clientInfluencers/{clientId:int}")]
+    public async Task<ActionResult<List<InfluencerResponseModel>>> GetByClientIdAsync(int clientId)
+    {
+        var influencers = await _influencerService.GetByClientIdAsync(clientId);
+        return Ok(influencers);
     }
 
     [HttpGet]
@@ -47,6 +50,21 @@ public class InfluencerController : ControllerBase
             return BadRequest("Description is required.");
         }
 
-        return Ok(await _influencerRecommendationService.RecommendAsync(request));
+        return Ok(await _influencerService.RecommendAsync(request));
     }
+
+    [HttpPost("add-influencer/{clientId}")]
+    [Authorize]
+    public async Task<ActionResult<InfluencerResponseModel>> SaveRecommendedAsync(
+        [FromBody] RecommendedChannelModel request, int clientId)
+    {
+        if (request == null || string.IsNullOrWhiteSpace(request.ChannelId) || string.IsNullOrWhiteSpace(request.ChannelName))
+        {
+            return BadRequest("ChannelId and ChannelName are required.");
+        }
+
+        var influencer = await _influencerService.SaveRecommendedAsync(request, clientId);
+        return CreatedAtAction("GetById", new { id = influencer.Id }, influencer);
+    }
+    
 }
