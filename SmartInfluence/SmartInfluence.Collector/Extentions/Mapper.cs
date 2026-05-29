@@ -120,6 +120,11 @@ public class Mapper
 
     private static float CalculateEngagementRate(double averageLikes, double averageComments, int? avgViewCount)
     {
+        if (!avgViewCount.HasValue || avgViewCount.Value <= 0)
+        {
+            return 0;
+        }
+
         return (float)Math.Round(((averageLikes + 2 * averageComments) / avgViewCount.Value) * 100, 2);
     }
    
