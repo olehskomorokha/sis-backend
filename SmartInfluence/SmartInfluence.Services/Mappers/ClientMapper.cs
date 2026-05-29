@@ -12,9 +12,6 @@ public static class ClientMapper
             Id = client.Id,
             Brand = client.Brand,
             Email = client.Email,
-            Budget = client.Budget,
-            TargetCountry = client.TargetCountry,
-            TargetAudience = client.TargetAudience,
             CreatedAt = client.CreatedAt
         };
     }

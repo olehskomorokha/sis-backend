@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartInfluence.Services.Interfaces;
 using SmartInfluence.Services.Models;
@@ -13,6 +14,13 @@ public class InfluencerController : ControllerBase
     public InfluencerController(IInfluencerService influencerService)
     {
         _influencerService = influencerService;
+    }
+
+    [HttpGet("clientInfluencers/{clientId:int}")]
+    public async Task<ActionResult<List<InfluencerResponseModel>>> GetByClientIdAsync(int clientId)
+    {
+        var influencers = await _influencerService.GetByClientIdAsync(clientId);
+        return Ok(influencers);
     }
 
     [HttpGet]
@@ -44,4 +52,19 @@ public class InfluencerController : ControllerBase
 
         return Ok(await _influencerService.RecommendAsync(request));
     }
+
+    [HttpPost("add-influencer/{clientId}")]
+    [Authorize]
+    public async Task<ActionResult<InfluencerResponseModel>> SaveRecommendedAsync(
+        [FromBody] RecommendedChannelModel request, int clientId)
+    {
+        if (request == null || string.IsNullOrWhiteSpace(request.ChannelId) || string.IsNullOrWhiteSpace(request.ChannelName))
+        {
+            return BadRequest("ChannelId and ChannelName are required.");
+        }
+
+        var influencer = await _influencerService.SaveRecommendedAsync(request, clientId);
+        return CreatedAtAction("GetById", new { id = influencer.Id }, influencer);
+    }
+    
 }

@@ -5,15 +5,8 @@ namespace SmartInfluence.Collector.YouTube;
 
 public static partial class YouTubeApi
 {
-    private static readonly string[] UkrainianChannelQueries = ["авто", "Програмування", "автоогляди", "машини", "електромобілі", "тюнінг", "мотоцикли", "мотоблог", "велосипеди", "дрифт", "перегони", "СТО", "ремонт авто", "детейлінг", "паливо", "новини авто", "автоспорт", "Tesla", "BMW", "Audi", "технології", "гаджети", "смартфони", "ноутбуки", "ПК", "компютери", "ігри", "кіберспорт", "IT", "програмування", "штучний інтелект", "AI", "нейромережі", "робототехніка", "огляди техніки", "android", "iphone", "apple", "windows", "gaming", "valorant", "cs2", "dota2", "minecraft", "fortnite", "pubg", "stream", "twitch", "ютубер", "ігровий блогер", "геймплей", "огляд ігор", "летсплей", "кіберспортсмен", "steam", "xbox", "playstation", "nintendo", "мода", "стиль", "одяг", "fashion", "outfit", "бренди", "шопінг", "аксесуари", "взуття", "макіяж", "краса", "парфуми", "догляд", "косметика", "skincare", "haircare", "манікюр", "барбершоп", "фітнес", "спорт", "тренування", "gym", "бодібілдинг", "біг", "кросфіт", "йога", "пілатес", "харчування", "дієта", "схуднення", "здоровя", "wellness", "марафон", "турнік", "powerlifting", "fitness coach", "їжа", "рецепти", "кулінарія", "кухар", "foodblog", "ресторани", "кафе", "вулична їжа", "десерти", "випічка", "кава", "чай", "бургери", "піца", "суші", "healthy food", "веганство", "гриль", "подорожі", "travel", "туризм", "відпочинок", "готелі", "авіаперельоти", "roadtrip", "кемпінг", "гори", "Карпати", "Європа", "Україна", "туристичний блог", "мандрівки",
-        "travel vlog", "пляжі", "backpacking", "музика", "реп", "hiphop", "rock", "pop", "dj", "співак", "співачка", "концерти",
-        "музичний блог", "українська музика", "cover", "beatmaker", "producer", "spotify", "music review", "бізнес", "підприємництво", "стартап", "маркетинг", "SMM", "digital marketing", "таргет", "реклама", "бренд", "продажі", "sales", "ecommerce", "dropshipping", "інвестиції", "криптовалюта", "bitcoin", "trading", "фінанси", "освіта", "навчання", "англійська", "математика", "історія", "наука", "physics", "chemistry", "біологія", "edtech", "курси", "саморозвиток", "психологія", "study", "університет", "frontend", "backend", "розваги", "гумор", "меми", "пранки", "реакції", "шоу", "комедія", "tiktok", "shorts", "вірусні відео", "funny", "vlog", "лайфстайл", "storytime", "challenge", "подкаст", "діти", "батьківство", "мама блог", "сімя", "baby", "parenting", "іграшки", "вагітність", "family vlog", "пологи", "mom life", "dad life", "тварини", "pets", "коти", "собаки", "ветеринар", "кінолог", "catlover", "doglover", "animal rescue", "pet care", "ферма", "фотографія", "відеозйомка", "монтаж", "cinematic", "camera", "sony", "canon", "drone", "відеограф", "фотограф", "content creator", "instagram", "reels", "lighting", "filmmaking", "політика", "новини", "журналістика", "війна", "Україна новини", "аналітика", "економіка", "волонтерство", "ЗСУ", "історія України", "telegram", "military", "нерухомість", "будівництво", "ремонт", "дизайн інтерєру", "інтерєр", "архітектура", "DIY", "меблі", "квартира", "будинок", "real estate", "renovation", "home design", "smart home", "Риболовля"];
-
-    
-    public static async Task<List<Channel>> CollectUkrainianChannelsAsync(YouTubeRequestModel model)
+    public static async Task<List<Channel>> CollectUkrainianChannelsAsync(YouTubeRequestModel model, string query)
     {
-        //var query = UkrainianChannelQueries[3];
-        var query = "Сад, город, розсада";
         var searchRequest = model.Service.Search.List("snippet");
         searchRequest.Q = query;
         searchRequest.RelevanceLanguage = "uk";
@@ -30,11 +23,16 @@ public static partial class YouTubeApi
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray();
 
+        if (channelIds is null || channelIds.Length == 0)
+        {
+            return [];
+        }
+
         var channelsRequest = model.Service.Channels.List("snippet,contentDetails,statistics,topicDetails,brandingSettings");
-        channelsRequest.Id = string.Join(",", channelIds ?? []);
+        channelsRequest.Id = string.Join(",", channelIds);
         var channelsResponse = await channelsRequest.ExecuteAsync(model.CancellationToken);
         
-        return channelsResponse.Items.ToList();
+        return channelsResponse.Items?.ToList() ?? [];
     }
 
     public static async Task<List<string>> GetChannelPlayListItemsAsync(YouTubeRequestModel model, string channelId)
@@ -48,10 +46,10 @@ public static partial class YouTubeApi
             searchRequest.PlaylistId = StringConverter.ConvertChannelIdToPlaylistId(channelId);
             searchRequest.MaxResults = 50;
             searchRequest.PageToken = pageToken;
-
+            
             var searchResponse = await searchRequest.ExecuteAsync(model.CancellationToken);
 
-            foreach (var item in searchResponse.Items)
+            foreach (var item in searchResponse.Items ?? [])
             {
                 var publishedAt = item.ContentDetails?.VideoPublishedAtDateTimeOffset;
 
@@ -65,8 +63,10 @@ public static partial class YouTubeApi
                     return result;
                 }
                 var videoId = item.Snippet?.ResourceId?.VideoId;
-
-                result.Add(videoId);
+                if (!string.IsNullOrWhiteSpace(videoId))
+                {
+                    result.Add(videoId);
+                }
             }
 
             pageToken = searchResponse.NextPageToken;
@@ -89,28 +89,11 @@ public static partial class YouTubeApi
 
             var videoResponse = await videoRequest.ExecuteAsync(model.CancellationToken);
 
-            foreach (var video in videoResponse.Items)
+            foreach (var video in videoResponse.Items ?? [])
             {
                 result.Add(Mapper.MapToVideoDetails(video));
             }
         }
-
         return result;
-    }
-    public static async Task<List<string>> GetAllCategories(YouTubeRequestModel model)
-    {
-        var categoriesList = new List<string>();
-        var request = model.Service.VideoCategories.List("snippet");
-        request.RegionCode = "UA";
-        request.Hl = "uk";
-
-        var response = await request.ExecuteAsync();
-
-        foreach (var category in response.Items)
-        {
-            Console.WriteLine($"{category.Id} - {category.Snippet.Title}");
-            categoriesList.Add(category.Snippet.Title);
-        }
-        return  categoriesList;
     }
 }

@@ -12,8 +12,8 @@ using SmartInfluence.Data;
 namespace SmartInfluence.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260524102056_Initial")]
-    partial class Initial
+    [Migration("20260527125738_UpdateInfluencer")]
+    partial class UpdateInfluencer
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -37,10 +37,6 @@ namespace SmartInfluence.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal?>("Budget")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -50,9 +46,6 @@ namespace SmartInfluence.Data.Migrations
 
                     b.Property<string>("Password")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("TargetAudience")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("TargetCountry")
@@ -71,7 +64,7 @@ namespace SmartInfluence.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("CampaignId")
+                    b.Property<int>("ClientId")
                         .HasColumnType("int");
 
                     b.Property<int>("InfluencerId")
@@ -86,58 +79,15 @@ namespace SmartInfluence.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CampaignId");
-
                     b.HasIndex("InfluencerId");
+
+                    b.HasIndex("ClientId", "InfluencerId")
+                        .IsUnique();
 
                     b.ToTable("ClientInfluencers");
                 });
 
             modelBuilder.Entity("SmartInfluence.Data.Entities.InfluencerScore", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("BrandFitScore")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime>("CalculatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<decimal>("EngagementScore")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("InfluencerId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("InfluencerId");
-
-                    b.ToTable("InfluencerScores");
-                });
-
-            modelBuilder.Entity("SmartInfluence.Data.Entities.InfluencerTag", b =>
-                {
-                    b.Property<int>("InfluencerId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TagId")
-                        .HasColumnType("int");
-
-                    b.HasKey("InfluencerId", "TagId");
-
-                    b.HasIndex("TagId");
-
-                    b.ToTable("InfluencerTags");
-                });
-
-            modelBuilder.Entity("SmartInfluence.Data.Entities.Influencers", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -157,7 +107,51 @@ namespace SmartInfluence.Data.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<decimal>("BrandFitScore")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("CalculatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("EngagementScore")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("InfluencerId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PostsCount")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InfluencerId");
+
+                    b.ToTable("InfluencerScores");
+                });
+
+            modelBuilder.Entity("SmartInfluence.Data.Entities.Influencers", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AiReview")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("AvatarUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("ChannelName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ChannelUrl")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -174,7 +168,7 @@ namespace SmartInfluence.Data.Migrations
 
                     b.Property<string>("InfluencerId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Lenguage")
                         .IsRequired()
@@ -184,40 +178,19 @@ namespace SmartInfluence.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("PostsCount")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
+
+                    b.HasIndex("InfluencerId")
+                        .IsUnique();
 
                     b.ToTable("Influencers");
                 });
 
-            modelBuilder.Entity("SmartInfluence.Data.Entities.Tag", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("ChannelTagName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("VideosTagName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Tags");
-                });
-
             modelBuilder.Entity("SmartInfluence.Data.Entities.ClientInfluencer", b =>
                 {
-                    b.HasOne("SmartInfluence.Data.Entities.Client", "Campaign")
+                    b.HasOne("SmartInfluence.Data.Entities.Client", "Client")
                         .WithMany()
-                        .HasForeignKey("CampaignId")
+                        .HasForeignKey("ClientId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -227,7 +200,7 @@ namespace SmartInfluence.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Campaign");
+                    b.Navigation("Client");
 
                     b.Navigation("Influencer");
                 });
@@ -241,25 +214,6 @@ namespace SmartInfluence.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Influencer");
-                });
-
-            modelBuilder.Entity("SmartInfluence.Data.Entities.InfluencerTag", b =>
-                {
-                    b.HasOne("SmartInfluence.Data.Entities.Influencers", "Influencer")
-                        .WithMany()
-                        .HasForeignKey("InfluencerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("SmartInfluence.Data.Entities.Tag", "Tag")
-                        .WithMany()
-                        .HasForeignKey("TagId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Influencer");
-
-                    b.Navigation("Tag");
                 });
 #pragma warning restore 612, 618
         }
