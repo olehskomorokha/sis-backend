@@ -14,15 +14,18 @@ namespace SmartInfluence.Services.Services;
 public class ClientService : IClientService
 {
     private readonly IClientRepository _clientRepository;
+    private readonly IClientInfluencerRepository _clientInfluencerRepository;
     private readonly IInfluencerRepository _influencerRepository;
     private readonly IConfiguration _configuration;
 
     public ClientService(
         IClientRepository clientRepository,
+        IClientInfluencerRepository clientInfluencerRepository,
         IInfluencerRepository influencerRepository,
         IConfiguration configuration)
     {
         _clientRepository = clientRepository;
+        _clientInfluencerRepository = clientInfluencerRepository;
         _influencerRepository = influencerRepository;
         _configuration = configuration;
     }
@@ -144,5 +147,29 @@ public class ClientService : IClientService
                 SecurityAlgorithms.HmacSha256));
 
         return new JwtSecurityTokenHandler().WriteToken(jwt);
+    }
+    
+    public async Task DeleteAsync(int id)
+    {
+        var client = await _clientRepository.GetByIdAsync(id);
+        if (client == null)
+        {
+            return;
+        }
+
+        var influencers = await _influencerRepository.GetByClientIdAsync(id);
+        await _clientRepository.DeleteAsync(id);
+
+        foreach (var influencer in influencers.DistinctBy(x => x.Id))
+        {
+            var stillUsedByAnyClient = await _clientInfluencerRepository.ExistsByInfluencerIdAsync(influencer.Id);
+            if (stillUsedByAnyClient)
+            {
+                continue;
+            }
+
+            await _influencerRepository.DeleteScoresByInfluencerIdAsync(influencer.Id);
+            await _influencerRepository.DeleteAsync(influencer);
+        }
     }
 }

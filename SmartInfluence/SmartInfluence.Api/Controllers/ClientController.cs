@@ -82,4 +82,11 @@ public class ClientController : ControllerBase
             return Unauthorized(new { code = ex.Code, message = ex.Message });
         }
     }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteAsync(int id)
+    {
+        await _clientService.DeleteAsync(id);
+        return Ok();
+    }
 }

@@ -39,4 +39,17 @@ public class ClientRepository : IClientRepository
         _dbContext.Clients.Update(client);
         return _dbContext.SaveChangesAsync();
     }
+
+    public async Task DeleteAsync(int id)
+    {
+        var client = await GetByIdAsync(id);
+        if (client == null)
+        {
+            return;
+        }
+        _dbContext.Clients.Remove(client);
+        await _dbContext.SaveChangesAsync();
+        
+        
+    }
 }

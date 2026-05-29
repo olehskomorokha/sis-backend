@@ -10,4 +10,5 @@ public interface IClientService
     public Task<bool> UpdateAsync(int id, UpdateClientModel model);
     public Task<string> LoginAsync(LoginClientModel model);
     public Task<List<InfluencerResponseModel>> GetInfluencersByClientIdAsync(int clientId);
+    public Task DeleteAsync(int id);
 }
