@@ -30,7 +30,7 @@ public class Mapper
             Interests = interests,
             Statictics = new YouTubeApi.Statictics()
             {
-                EngagementRate = CalculateEngagementRate(averageLikes, averageComments * 2, channel.Statistics?.SubscriberCount),
+                EngagementRate = CalculateEngagementRate(averageLikes, averageComments * 2, perHalfYear.AvgView),
                 PerHalfYear = perHalfYear
             }
             
@@ -118,14 +118,9 @@ public class Mapper
         return string.IsNullOrWhiteSpace(segment) ? null : Uri.UnescapeDataString(segment);
     }
 
-    private static float CalculateEngagementRate(double averageLikes, double averageComments, ulong? subscriberCount)
+    private static float CalculateEngagementRate(double averageLikes, double averageComments, int? avgViewCount)
     {
-        if (!subscriberCount.HasValue || subscriberCount.Value == 0)
-        {
-            return 0;
-        }
-
-        return (float)Math.Round(((averageLikes + 2 * averageComments) / subscriberCount.Value) * 100, 2);
+        return (float)Math.Round(((averageLikes + 2 * averageComments) / avgViewCount.Value) * 100, 2);
     }
    
 }
