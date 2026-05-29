@@ -45,11 +45,12 @@ public class ClientService : IClientService
     
     public async Task CreateAsync(CreateClientModel model)
     {
-        if (model == null)
+        var user = await _clientRepository.GetByEmailAsync(model.Email);
+        if (user != null && user.Email == model.Email )
         {
-            throw new ArgumentNullException(nameof(model));
+            throw new RegisterException("user with this email already registered ", "Invalid email.");
         }
-
+        
         model.Password = HashPassword(model.Password);
         await _clientRepository.CreateAsync(ClientMapper.MapToCreateClientModel(model));
     }
