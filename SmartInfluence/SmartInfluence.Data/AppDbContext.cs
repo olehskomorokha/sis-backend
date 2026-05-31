@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
 using SmartInfluence.Data.Entities;
 
 namespace SmartInfluence.Data;

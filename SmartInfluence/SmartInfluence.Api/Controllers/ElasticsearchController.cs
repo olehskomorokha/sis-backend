@@ -1,7 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SmartInfluence.Services.Interfaces;
-using SmartInfluence.Services.Models;
-using SmartInfluence.Services.Services;
 
 namespace SmartInfluence.Api.Controllers;
 
@@ -16,11 +15,14 @@ public class ElasticsearchController : ControllerBase
         _elasticserchService = elasticserchService;
     }
 
+    [Authorize]
     [HttpGet("GetById/{id}")]
     public async Task<object> GetById(string id)
     {
         return await _elasticserchService.GetById(id);
     }
+    
+    [Authorize]
     [HttpGet("bloggerTags")]
     public async Task<List<string>> GetAllBloggerTags()
     {

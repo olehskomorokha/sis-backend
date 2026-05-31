@@ -57,7 +57,7 @@ public class ProductQueryAiService : IProductQueryAiService
         };
         var completion = await client.CompleteChatAsync(messages);
 
-        var json = completion.Value.Content[0].Text;
+        var json = completion.Value.Content[0].Text;    
 
         return JsonSerializer.Deserialize<ProductCriteriaModel>(
             json,
