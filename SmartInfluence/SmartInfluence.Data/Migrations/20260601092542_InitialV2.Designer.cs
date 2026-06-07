@@ -12,8 +12,8 @@ using SmartInfluence.Data;
 namespace SmartInfluence.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260531090031_UpdateTable")]
-    partial class UpdateTable
+    [Migration("20260601092542_InitialV2")]
+    partial class InitialV2
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

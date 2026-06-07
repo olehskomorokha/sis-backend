@@ -30,7 +30,4 @@ public class AiController : ControllerBase
     {
         return await _productQueryAiService.AiChannelReviewAsync(channelId);
     }
-    
-    
-    
 }
