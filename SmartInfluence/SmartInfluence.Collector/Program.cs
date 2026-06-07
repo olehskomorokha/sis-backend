@@ -3,7 +3,7 @@ using SmartInfluence.Collector.Extentions;
 using SmartInfluence.Collector.YouTube;
 
 Console.OutputEncoding = Encoding.UTF8;
-const int UnitsLimit = 500;
+const int UnitsLimit = 1500;
 string[] UkrainianChannelQueries =
 [
     "штучний інтелект", "огляди", "спорт", "спорт", "футбол", "здоров'я", "медицина",

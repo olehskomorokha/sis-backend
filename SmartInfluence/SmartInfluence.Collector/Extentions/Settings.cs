@@ -1,4 +1,5 @@
-﻿using Elastic.Clients.Elasticsearch;
+using Elastic.Clients.Elasticsearch;
+using Elastic.Transport;
 using Google.Apis.Services;
 using Google.Apis.YouTube.v3;
 using Microsoft.Extensions.Configuration;
@@ -19,12 +20,15 @@ public static class Settings
 
         var youtubeApiKey = configuration["YouTube:ApiKey"];
 
-        var elasticUrl = configuration["ElasticsearchLocal:Url"]!;
-        var elasticIndex = configuration["ElasticsearchLocal:DefaultIndex"] ?? "youtube";
+        var elasticUrl = configuration["Elasticsearch:Url"]!;
+        var elasticIndex = configuration["Elasticsearch:DefaultIndex"] ?? "youtube";
+        var elasticApiKey = configuration["Elasticsearch:ApiKey"];
 
-        var elasticClient = new ElasticsearchClient(
-            new ElasticsearchClientSettings(new Uri(elasticUrl))
-                .DefaultIndex(elasticIndex));
+        var elasticSettings = new ElasticsearchClientSettings(new Uri(elasticUrl))
+            .DefaultIndex(elasticIndex)
+            .Authentication(new ApiKey(elasticApiKey));
+
+        var elasticClient = new ElasticsearchClient(elasticSettings);
 
         var youtubeService = new YouTubeService(new BaseClientService.Initializer
         {

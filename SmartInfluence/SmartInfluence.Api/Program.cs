@@ -14,7 +14,7 @@ using Elastic.Transport;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var elasticUrl = builder.Configuration["ElasticsearchLocal:Url"];
+var elasticUrl = builder.Configuration["Elasticsearch:Url"];
 var esIndex = builder.Configuration["Elasticsearch:DefaultIndex"] ?? "influencers";
 var settings = new ElasticsearchClientSettings(new Uri(elasticUrl)).DefaultIndex(esIndex);
 builder.Services.AddSingleton(new ElasticsearchClient(
