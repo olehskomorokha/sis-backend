@@ -18,6 +18,6 @@ WORKDIR /app
 
 COPY --from=build /app/publish .
 
-ENV ASPNETCORE_URLS=http://0.0.0.0:${PORT}
+ENV ASPNETCORE_URLS=http://0.0.0.0:$7000
 
 ENTRYPOINT ["dotnet", "SmartInfluence.Api.dll"]
