@@ -15,11 +15,20 @@ using Elastic.Transport;
 var builder = WebApplication.CreateBuilder(args);
 
 var elasticUrl = builder.Configuration["Elasticsearch:Url"];
+var elasticUsername = builder.Configuration["Elasticsearch:Username"];
+var elasticPassword = builder.Configuration["Elasticsearch:Password"];
 var esIndex = builder.Configuration["Elasticsearch:DefaultIndex"] ?? "influencers";
-var settings = new ElasticsearchClientSettings(new Uri(elasticUrl)).DefaultIndex(esIndex);
-builder.Services.AddSingleton(new ElasticsearchClient(
-    new Uri(elasticUrl!)
-));
+var settings = new ElasticsearchClientSettings(new Uri(elasticUrl!))
+    .DefaultIndex(esIndex);
+
+if (!string.IsNullOrWhiteSpace(elasticUsername) &&
+    !string.IsNullOrWhiteSpace(elasticPassword))
+{
+    settings = settings.Authentication(
+        new BasicAuthentication(elasticUsername, elasticPassword));
+}
+
+builder.Services.AddSingleton(new ElasticsearchClient(settings));
 builder.Services.AddScoped<ElasticsearchService>();
 builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
