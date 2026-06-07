@@ -1,5 +1,3 @@
-using Elastic.Clients.Elasticsearch.MachineLearning;
-using SmartInfluence.Collector.YouTube;
 using SmartInfluence.Data.Entities;
 using SmartInfluence.Services.Models;
 
@@ -39,7 +37,7 @@ public static class InfluencerMapper
     }
     
     public static RecommendedChannelModel MapToRecommendedChannelModel(
-        YouTubeApi.UkrainianYouTubeBloggerDto channel,
+        YouTubeBloggerDocument channel,
         double? score,
         string? aiReview = null)
     {
@@ -97,3 +95,4 @@ public static class InfluencerMapper
 
     
 }
+
