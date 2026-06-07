@@ -3,6 +3,11 @@
 public class RecommendedChannelModel
 {
     public double? Score { get; set; }
+    public decimal BrandFitScore { get; set; }
+    public decimal EngagementScore { get; set; }
+    public decimal PostFrequencyScore { get; set; }
+    public decimal PredictedEngagement { get; set; }
+    public int TotalScore { get; set; }
     public string ChannelName { get; set; }
     public string? ChannelId { get; set; }
     public string ChannelUrl { get; set; }

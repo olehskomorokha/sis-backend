@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SmartInfluence.Services.Interfaces;
 using SmartInfluence.Services.Models;
 
@@ -14,7 +15,8 @@ public class AiController : ControllerBase
     {
         _productQueryAiService = productQueryAiService;
     }
-
+    
+    [Authorize]
     [HttpGet("/{descriprion}")]
     public async Task<ActionResult<ProductCriteriaModel>> GenerateTagsByProductDescription(string descriprion)
     {
@@ -22,12 +24,10 @@ public class AiController : ControllerBase
         return Ok(criteriamodel);
     }
 
+    [Authorize]
     [HttpGet("review/{channelId}")]
     public async Task<ActionResult<string>> ChannelReview(string channelId)
     {
         return await _productQueryAiService.AiChannelReviewAsync(channelId);
     }
-    
-    
-    
 }

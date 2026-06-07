@@ -1,4 +1,6 @@
-﻿namespace SmartInfluence.Data.Entities;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace SmartInfluence.Data.Entities;
 
 public class Influencers
 {
@@ -8,8 +10,8 @@ public class Influencers
     public string ChannelUrl { get; set; }
     public string Platform { get; set; }
     public string Description { get; set; }
-    public string Country { get; set; }
-    public string Lenguage { get; set; }
+    public string? Country { get; set; }
+    public string? Lenguage { get; set; }
     public string AvatarUrl { get; set; }
     public int FollowersCount { get; set; }
 }

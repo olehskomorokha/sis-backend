@@ -5,7 +5,7 @@
 namespace SmartInfluence.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class AddChannelUrlToInfluencers : Migration
+    public partial class InitialV2 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

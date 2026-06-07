@@ -20,7 +20,7 @@ public class ClientInfluencerService : IClientInfluencerService
 
     public async Task<List<ClientInfluencerModel>> GetAllAsync(int clientId)
     {
-        var clientInfluencers = await _repository.GetAllAsync(clientId);
+        var clientInfluencers = await _repository.GetAllClientInfluencersAsync(clientId);
 
         var influencerIds = clientInfluencers
             .Where(x => x.Influencer != null)

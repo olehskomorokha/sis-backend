@@ -17,6 +17,7 @@
             _clientInfluencerService = clientInfluencerService;
         }
 
+        [Authorize]
         [HttpGet("{clientId}")]
         public async Task<ActionResult<List<ClientInfluencerModel>>> GetAsync(int clientId)
         {

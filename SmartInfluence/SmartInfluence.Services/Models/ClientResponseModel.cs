@@ -3,7 +3,7 @@ namespace SmartInfluence.Services.Models;
 public class ClientResponseModel
 {
     public int Id { get; set; }
-    public string Brand { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
+    public string Brand { get; set; }
+    public string Email { get; set; }
     public DateTime CreatedAt { get; set; }
 }

@@ -78,9 +78,13 @@ builder.Services.AddSwaggerGen(opt =>
 });
 builder.Services.AddCors(p => p.AddPolicy("corspolicy", build =>
 {
-    build.WithOrigins("http://localhost:3000").AllowAnyMethod().AllowAnyHeader();
-    build.WithOrigins("http://192.168.56.1:3000").AllowAnyMethod().AllowAnyHeader();
-    build.WithOrigins("http://127.0.0.1:5500").AllowAnyMethod().AllowAnyHeader();
+    build.WithOrigins(
+            "http://localhost:3000",
+            "https://olehskomorokha.github.io",
+            "http://192.168.56.1:3000",
+            "http://127.0.0.1:5500")
+        .AllowAnyMethod()
+        .AllowAnyHeader();
 }));
 
 var app = builder.Build();

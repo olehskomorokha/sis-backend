@@ -13,7 +13,12 @@ public class ClientInfluencerRepository : IClientInfluencerRepository
         _dbContext = dbContext;
     }
 
-    public async Task<List<ClientInfluencer>> GetAllAsync(int clientId)
+    public async Task<List<ClientInfluencer>> GetAllAsync()
+    {
+        return await  _dbContext.ClientInfluencers.AsNoTracking().ToListAsync();
+    }
+    
+    public async Task<List<ClientInfluencer>> GetAllClientInfluencersAsync(int clientId)
     {
         return await _dbContext.ClientInfluencers
             .Where(x => x.ClientId == clientId)

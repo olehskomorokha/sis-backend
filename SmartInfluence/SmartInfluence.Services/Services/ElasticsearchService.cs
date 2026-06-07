@@ -1,6 +1,7 @@
 ﻿using Elastic.Clients.Elasticsearch;
 using Elastic.Clients.Elasticsearch.QueryDsl;
 using SmartInfluence.Collector.YouTube;
+using SmartInfluence.Services.Exceptions;
 using SmartInfluence.Services.Interfaces;
 using SmartInfluence.Services.Mappers;
 using SmartInfluence.Services.Models;
@@ -10,6 +11,8 @@ namespace SmartInfluence.Services.Services;
 public class ElasticsearchService : IElasticsearchService
 {
     private const string YoutuberIndex = "youtube";
+    private const int MaxRecommendationCount = 20;
+    private const int CandidatePoolSize = 100;
 
     private readonly ElasticsearchClient _client;
     
@@ -61,7 +64,7 @@ public class ElasticsearchService : IElasticsearchService
         ProductCriteriaModel criteria,
         InfluencerRecommendationFiltersModel filters)
     {
-        var size = Math.Clamp(filters.ResultCount, 1, 50);
+        var requestedSize = Math.Clamp(filters.ResultCount, 1, MaxRecommendationCount);
         var channelTags = NormalizeTags(criteria.ChannelTags)
             .Concat(NormalizeTags(filters.Tags))
             .Distinct(StringComparer.OrdinalIgnoreCase)
@@ -138,7 +141,7 @@ public class ElasticsearchService : IElasticsearchService
 
         var response = await _client.SearchAsync<YouTubeApi.UkrainianYouTubeBloggerDto>(s =>
         {
-            s.Index(YoutuberIndex).Size(size);
+            s.Index(YoutuberIndex).Size(CandidatePoolSize);
 
             if (shouldQueries.Count == 0 && filterQueries.Count == 0)
             {
@@ -165,9 +168,18 @@ public class ElasticsearchService : IElasticsearchService
             return [];
         }
 
-        return response.Hits
+        var channels = response.Hits
             .Where(hit => hit.Source is not null)
             .Select(hit => InfluencerMapper.MapToRecommendedChannelModel(hit.Source!, hit.Score))
+            .ToList();
+
+        ScoreCalculator.ApplyCalculatedScores(channels);
+
+        return channels
+            .OrderByDescending(channel => channel.TotalScore)
+            .ThenByDescending(channel => channel.BrandFitScore)
+            .ThenByDescending(channel => channel.Score ?? 0d)
+            .Take(requestedSize)
             .ToList();
     }
 

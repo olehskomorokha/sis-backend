@@ -36,18 +36,11 @@ public class ClientInfluencerMapper
         {
             ClientId = clientId,
             InfluencerId = influencerId,
-            BrandFitScore = 23,
+            BrandFitScore = model.BrandFitScore,
             Status = Status.Active,
-            TotalScore = 24,
+            TotalScore = model.TotalScore,
             AiReview = model.AiReview ?? "",
-            PredictedEngagement = CalculatePredictedEngagement(23),
+            PredictedEngagement = model.PredictedEngagement,
         };
     }
-    
-    
-    public static int CalculatePredictedEngagement(int i)
-    {
-        return i;
-    }
-    
 }
