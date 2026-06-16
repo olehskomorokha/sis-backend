@@ -17,12 +17,23 @@ var builder = WebApplication.CreateBuilder(args);
 var elasticUrl = builder.Configuration["Elasticsearch:Url"];
 var elasticUsername = builder.Configuration["Elasticsearch:Username"];
 var elasticPassword = builder.Configuration["Elasticsearch:Password"];
+var elasticApiKey = builder.Configuration["Elasticsearch:ApiKey"];
 var esIndex = builder.Configuration["Elasticsearch:DefaultIndex"] ?? "influencers";
+
+if (string.IsNullOrWhiteSpace(elasticUrl))
+{
+    throw new InvalidOperationException("Elasticsearch:Url is not configured.");
+}
+
 var settings = new ElasticsearchClientSettings(new Uri(elasticUrl!))
     .DefaultIndex(esIndex);
 
-if (!string.IsNullOrWhiteSpace(elasticUsername) &&
-    !string.IsNullOrWhiteSpace(elasticPassword))
+if (!string.IsNullOrWhiteSpace(elasticApiKey))
+{
+    settings = settings.Authentication(new ApiKey(elasticApiKey));
+}
+else if (!string.IsNullOrWhiteSpace(elasticUsername) &&
+         !string.IsNullOrWhiteSpace(elasticPassword))
 {
     settings = settings.Authentication(
         new BasicAuthentication(elasticUsername, elasticPassword));
@@ -98,11 +109,8 @@ builder.Services.AddCors(p => p.AddPolicy("corspolicy", build =>
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseCors("corspolicy");
 app.UseHttpsRedirection();

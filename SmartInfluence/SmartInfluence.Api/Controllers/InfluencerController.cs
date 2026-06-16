@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SmartInfluence.Services.Exceptions;
 using SmartInfluence.Services.Interfaces;
 using SmartInfluence.Services.Models;
 
@@ -52,7 +53,14 @@ public class InfluencerController : ControllerBase
             return BadRequest("Description is required.");
         }
 
-        return Ok(await _influencerService.RecommendAsync(request));
+        try
+        {
+            return Ok(await _influencerService.RecommendAsync(request));
+        }
+        catch (InvalidProductDescriptionException ex)
+        {
+            return BadRequest(new { code = ex.Code, message = ex.Message });
+        }
     }
 
     [Authorize]

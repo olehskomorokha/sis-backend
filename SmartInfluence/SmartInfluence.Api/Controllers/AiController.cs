@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SmartInfluence.Services.Exceptions;
 using SmartInfluence.Services.Interfaces;
 using SmartInfluence.Services.Models;
 
@@ -20,8 +21,15 @@ public class AiController : ControllerBase
     [HttpGet("/{descriprion}")]
     public async Task<ActionResult<ProductCriteriaModel>> GenerateTagsByProductDescription(string descriprion)
     {
-        var criteriamodel = await _productQueryAiService.ParseProductDescriptionAsync(descriprion);
-        return Ok(criteriamodel);
+        try
+        {
+            var criteriamodel = await _productQueryAiService.ParseProductDescriptionAsync(descriprion);
+            return Ok(criteriamodel);
+        }
+        catch (InvalidProductDescriptionException ex)
+        {
+            return BadRequest(new { code = ex.Code, message = ex.Message });
+        }
     }
 
     [Authorize]
