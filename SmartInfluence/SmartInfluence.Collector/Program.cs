@@ -3,20 +3,22 @@ using SmartInfluence.Collector.Extentions;
 using SmartInfluence.Collector.YouTube;
 
 Console.OutputEncoding = Encoding.UTF8;
-const int UnitsLimit = 500;
-string[] UkrainianChannelQueries =
+const int unitsLimit = 300;
+string[] queries =
 [
-    "штучний інтелект", "огляди", "спорт", "спорт", "футбол", "здоров'я", "медицина",
-    "фінанси", "інвестиції", "новини", "політика", "історія", "література", "ремонт",
-    "дизайн", "фотографія", "мобільні ігри", "програмування", "штучний інтелект", "огляди"
+    "Університет", "інвестиції", "новини", "політика", "історія", "література", "дизайн", "фотографія", "мобільні ігри", "програмування", "штучний інтелект", "подорожі", "автомобілі", "електроніка", "гаджети",
+
+    "наука", "астрономія", "космос", "освіта", "англійська мова", "математика", "бізнес", "стартапи", "маркетинг", "психологія", "мотивація", "саморозвиток", "кулінарія", "рецепти", "рибалка", "полювання", "туризм", "велоспорт", "волейбол", "баскетбол", "теніс",
+
+    "єдиноборства", "біг", "фітнес", "gym", "музика", "кіно", "серіали", "аніме", "криптовалюта", "blockchain", "Docker", "ASP.NET", "C#", "PHP", "JavaScript", "React", "Angular", "Azure", "DevOps", "кібербезпека", "машинне навчання", "NLP", "робототехніка"
 ];
 var usedUnits = 0;
 
 var model = Settings.LoadRequestModel();
 
-foreach (var query in UkrainianChannelQueries)
+foreach (var query in queries)
 {
-    if (usedUnits > UnitsLimit - 101)
+    if (usedUnits > unitsLimit - 101)
     {
         Console.WriteLine($"Total used  units: {usedUnits}");
         return;

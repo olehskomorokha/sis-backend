@@ -1,6 +1,5 @@
-﻿using Elastic.Clients.Elasticsearch;
+using Elastic.Clients.Elasticsearch;
 using Elastic.Clients.Elasticsearch.QueryDsl;
-using SmartInfluence.Collector.YouTube;
 using SmartInfluence.Services.Exceptions;
 using SmartInfluence.Services.Interfaces;
 using SmartInfluence.Services.Mappers;
@@ -73,7 +72,7 @@ public class ElasticsearchService : IElasticsearchService
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray();
 
-        var filterQueries = new List<Action<QueryDescriptor<YouTubeApi.UkrainianYouTubeBloggerDto>>>();
+        var filterQueries = new List<Action<QueryDescriptor<YouTubeBloggerDocument>>>();
 
         if (!string.IsNullOrWhiteSpace(filters.Country))
         {
@@ -104,7 +103,7 @@ public class ElasticsearchService : IElasticsearchService
                 .Field("statictics.perHalfYear.videoCount")
                 .Gte(4))));
 
-        var shouldQueries = new List<Action<QueryDescriptor<YouTubeApi.UkrainianYouTubeBloggerDto>>>();
+        var shouldQueries = new List<Action<QueryDescriptor<YouTubeBloggerDocument>>>();
 
         foreach (var tag in channelTags)
         {
@@ -139,7 +138,7 @@ public class ElasticsearchService : IElasticsearchService
                 .Boost(2)));
         }
 
-        var response = await _client.SearchAsync<YouTubeApi.UkrainianYouTubeBloggerDto>(s =>
+        var response = await _client.SearchAsync<YouTubeBloggerDocument>(s =>
         {
             s.Index(YoutuberIndex).Size(CandidatePoolSize);
 
@@ -208,3 +207,4 @@ public class ElasticsearchService : IElasticsearchService
             .Distinct(StringComparer.OrdinalIgnoreCase) ?? [];
     }
 }
+

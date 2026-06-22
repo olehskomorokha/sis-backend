@@ -14,18 +14,38 @@ using Elastic.Transport;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var elasticUrl = builder.Configuration["ElasticsearchLocal:Url"];
+var elasticUrl = builder.Configuration["Elasticsearch:Url"];
+var elasticUsername = builder.Configuration["Elasticsearch:Username"];
+var elasticPassword = builder.Configuration["Elasticsearch:Password"];
+var elasticApiKey = builder.Configuration["Elasticsearch:ApiKey"];
 var esIndex = builder.Configuration["Elasticsearch:DefaultIndex"] ?? "influencers";
-var settings = new ElasticsearchClientSettings(new Uri(elasticUrl)).DefaultIndex(esIndex);
-builder.Services.AddSingleton(new ElasticsearchClient(
-    new Uri(elasticUrl!)
-));
+
+if (string.IsNullOrWhiteSpace(elasticUrl))
+{
+    throw new InvalidOperationException("Elasticsearch:Url is not configured.");
+}
+
+var settings = new ElasticsearchClientSettings(new Uri(elasticUrl!))
+    .DefaultIndex(esIndex);
+
+if (!string.IsNullOrWhiteSpace(elasticApiKey))
+{
+    settings = settings.Authentication(new ApiKey(elasticApiKey));
+}
+else if (!string.IsNullOrWhiteSpace(elasticUsername) &&
+         !string.IsNullOrWhiteSpace(elasticPassword))
+{
+    settings = settings.Authentication(
+        new BasicAuthentication(elasticUsername, elasticPassword));
+}
+
+builder.Services.AddSingleton(new ElasticsearchClient(settings));
 builder.Services.AddScoped<ElasticsearchService>();
 builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("AzureConnection")));
 
 builder.Services.AddControllers();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -89,11 +109,8 @@ builder.Services.AddCors(p => p.AddPolicy("corspolicy", build =>
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseCors("corspolicy");
 app.UseHttpsRedirection();

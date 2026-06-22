@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.Extensions.Configuration;
 using OpenAI.Chat;
+using SmartInfluence.Services.Exceptions;
 using SmartInfluence.Services.Interfaces;
 using SmartInfluence.Services.Models;
 
@@ -24,7 +25,7 @@ public class ProductQueryAiService : IProductQueryAiService
     {
         if (string.IsNullOrWhiteSpace(productDescription))
         {
-            return new ProductCriteriaModel();
+            throw new InvalidProductDescriptionException("Product description is required.");
         }
 
         var client = new ChatClient(model: _model, apiKey: _apiKey);
@@ -49,6 +50,8 @@ public class ProductQueryAiService : IProductQueryAiService
                 - Do not invent unrelated tags.
                 - Return 5-15 channelTags in ukrainian and english.
                 - Return 10-25 videoTags in ukrainian and english.
+                - If the user text is random, meaningless, too vague, or not a product/service/campaign description, return:
+                  { "channelTags": [], "videoTags": [] }
                 - Do not add explanations.
                 - Do not wrap JSON in markdown.
                 """
@@ -59,13 +62,21 @@ public class ProductQueryAiService : IProductQueryAiService
 
         var json = completion.Value.Content[0].Text;    
 
-        return JsonSerializer.Deserialize<ProductCriteriaModel>(
+        var criteria = JsonSerializer.Deserialize<ProductCriteriaModel>(
             json,
             new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
             }
         ) ?? new ProductCriteriaModel();
+
+        if (!HasUsefulTags(criteria))
+        {
+            throw new InvalidProductDescriptionException(
+                "Description must clearly describe a product, service, or advertising campaign.");
+        }
+
+        return criteria;
     }
 
     public async Task<string> AiChannelReviewAsync(string channelId)
@@ -188,5 +199,15 @@ public class ProductQueryAiService : IProductQueryAiService
         }
 
         return current;
+    }
+
+    private static bool HasUsefulTags(ProductCriteriaModel criteria)
+    {
+        return HasTags(criteria.ChannelTags) || HasTags(criteria.VideoTags);
+    }
+
+    private static bool HasTags(IEnumerable<string>? tags)
+    {
+        return tags?.Any(tag => !string.IsNullOrWhiteSpace(tag)) == true;
     }
 }
