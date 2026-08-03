@@ -2,7 +2,7 @@
 
 namespace SmartInfluence.Collector.YouTube;
 
-public class YouTubeElasticService
+public abstract class YouTubeElasticService
 {
     public static async Task AddBloggerAsync(YouTubeRequestModel model, YouTubeApi.UkrainianYouTubeBloggerDto blogger)
     {

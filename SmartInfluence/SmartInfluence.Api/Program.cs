@@ -18,7 +18,7 @@ var elasticUrl = builder.Configuration["Elasticsearch:Url"];
 var elasticUsername = builder.Configuration["Elasticsearch:Username"];
 var elasticPassword = builder.Configuration["Elasticsearch:Password"];
 var elasticApiKey = builder.Configuration["Elasticsearch:ApiKey"];
-var esIndex = builder.Configuration["Elasticsearch:DefaultIndex"] ?? "influencers";
+var esIndex = builder.Configuration["Elasticsearch:DefaultIndex"];
 
 if (string.IsNullOrWhiteSpace(elasticUrl))
 {
@@ -45,7 +45,7 @@ builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("AzureConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("PostgreSqlConnection")));
 
 builder.Services.AddControllers();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

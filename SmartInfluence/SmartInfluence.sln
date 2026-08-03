@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartInfluence.Data", "Smar
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartInfluence.Services", "SmartInfluence.Services\SmartInfluence.Services.csproj", "{48F7876C-F3B5-439C-9A1E-A34E6659D6C1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartInfluence.Collector", "SmartInfluence.Collector\SmartInfluence.Collector.csproj", "{3FD2D21D-91D8-4483-ABB0-C172633540F2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,6 +26,10 @@ Global
 		{48F7876C-F3B5-439C-9A1E-A34E6659D6C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{48F7876C-F3B5-439C-9A1E-A34E6659D6C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{48F7876C-F3B5-439C-9A1E-A34E6659D6C1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3FD2D21D-91D8-4483-ABB0-C172633540F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3FD2D21D-91D8-4483-ABB0-C172633540F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3FD2D21D-91D8-4483-ABB0-C172633540F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3FD2D21D-91D8-4483-ABB0-C172633540F2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
