@@ -14,7 +14,7 @@ public class ElasticsearchService : IElasticsearchService
     private const int CandidatePoolSize = 100;
 
     private readonly ElasticsearchClient _client;
-    
+
     public ElasticsearchService(ElasticsearchClient client)
     {
         _client = client;
@@ -207,4 +207,3 @@ public class ElasticsearchService : IElasticsearchService
             .Distinct(StringComparer.OrdinalIgnoreCase) ?? [];
     }
 }
-

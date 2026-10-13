@@ -127,5 +127,4 @@ public class CustomSwaggerFilter : IDocumentFilter
             .Where(x => x.Key.ToLower().Contains("/api/"))
             .ToList();
     }
-
 }

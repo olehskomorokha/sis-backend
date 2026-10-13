@@ -2,9 +2,8 @@
 
 public class PasswordHashingException : SystemException
 {
-    public PasswordHashingException(string code, string message) 
+    public PasswordHashingException(string code, string message)
         : base(code, message)
     {
-        
     }
 }

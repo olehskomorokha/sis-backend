@@ -24,6 +24,7 @@ public class ClientController : ControllerBase
         return Ok(await _clientService.GetAllAsync());
     }
 
+    [Authorize]
     [HttpGet("{id}")]
     public async Task<ActionResult<ClientResponseModel>> GetByIdAsync(int id)
     {
@@ -83,6 +84,7 @@ public class ClientController : ControllerBase
         }
     }
 
+    [Authorize]
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteAsync(int id)
     {

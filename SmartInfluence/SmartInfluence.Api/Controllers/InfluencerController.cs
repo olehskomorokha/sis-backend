@@ -16,7 +16,7 @@ public class InfluencerController : ControllerBase
     {
         _influencerService = influencerService;
     }
-    
+
     [Authorize]
     [HttpGet("clientInfluencers/{clientId:int}")]
     public async Task<ActionResult<List<InfluencerResponseModel>>> GetByClientIdAsync(int clientId)
@@ -42,7 +42,7 @@ public class InfluencerController : ControllerBase
 
         return Ok(influencer);
     }
-    
+
     [Authorize]
     [HttpPost("recommendations")]
     public async Task<ActionResult<ElasticInfluencerRecommendationResponseModel>> RecommendAsync(
@@ -68,7 +68,8 @@ public class InfluencerController : ControllerBase
     public async Task<ActionResult<InfluencerResponseModel>> SaveRecommendedAsync(
         [FromBody] RecommendedChannelModel request, int clientId)
     {
-        if (request == null || string.IsNullOrWhiteSpace(request.ChannelId) || string.IsNullOrWhiteSpace(request.ChannelName))
+        if (request == null || string.IsNullOrWhiteSpace(request.ChannelId) ||
+            string.IsNullOrWhiteSpace(request.ChannelName))
         {
             return BadRequest("ChannelId and ChannelName are required.");
         }
@@ -76,5 +77,4 @@ public class InfluencerController : ControllerBase
         var influencer = await _influencerService.SaveRecommendedAsync(request, clientId);
         return CreatedAtAction("GetById", new { id = influencer.Id }, influencer);
     }
-    
 }

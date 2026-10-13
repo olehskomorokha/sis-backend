@@ -30,7 +30,7 @@ public class ClientService : IClientService
         _configuration = configuration;
     }
 
-    
+
     public async Task<List<ClientResponseModel>> GetAllAsync()
     {
         var clients = await _clientRepository.GetAllAsync();
@@ -42,15 +42,15 @@ public class ClientService : IClientService
         var client = await _clientRepository.GetByIdAsync(id);
         return ClientMapper.MapToResponseModel(client);
     }
-    
+
     public async Task CreateAsync(CreateClientModel model)
     {
         var user = await _clientRepository.GetByEmailAsync(model.Email);
-        if (user != null && user.Email == model.Email )
+        if (user != null && user.Email == model.Email)
         {
             throw new RegisterException("user with this email already registered ", "Invalid email.");
         }
-        
+
         model.Password = HashPassword(model.Password);
         await _clientRepository.CreateAsync(ClientMapper.MapToCreateClientModel(model));
     }
@@ -149,7 +149,7 @@ public class ClientService : IClientService
 
         return new JwtSecurityTokenHandler().WriteToken(jwt);
     }
-    
+
     public async Task DeleteAsync(int id)
     {
         var client = await _clientRepository.GetByIdAsync(id);

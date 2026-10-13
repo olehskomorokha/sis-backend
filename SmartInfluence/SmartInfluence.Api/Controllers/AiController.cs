@@ -16,20 +16,13 @@ public class AiController : ControllerBase
     {
         _productQueryAiService = productQueryAiService;
     }
-    
+
     [Authorize]
-    [HttpGet("/{descriprion}")]
-    public async Task<ActionResult<ProductCriteriaModel>> GenerateTagsByProductDescription(string descriprion)
+    [HttpPost]
+    public async Task<ActionResult<ProductCriteriaModel>> GenerateTagsByProductDescription([FromBody] GenerateTagsModel description)
     {
-        try
-        {
-            var criteriamodel = await _productQueryAiService.ParseProductDescriptionAsync(descriprion);
-            return Ok(criteriamodel);
-        }
-        catch (InvalidProductDescriptionException ex)
-        {
-            return BadRequest(new { code = ex.Code, message = ex.Message });
-        }
+        var criteriaModel = await _productQueryAiService.ParseProductDescriptionAsync(description.description);
+        return Ok(criteriaModel);
     }
 
     [Authorize]

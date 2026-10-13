@@ -34,12 +34,11 @@ public static partial class YouTubeApi
         public string[] VideoTags { get; init; }
         public string? VideoTitle { get; init; }
     }
+
     public sealed record Statictics
     {
-        
         public float EngagementRate { get; init; }
-        public PerHalfYear  PerHalfYear { get; init; }
-        
+        public PerHalfYear PerHalfYear { get; init; }
     }
 
     public sealed record PerHalfYear
@@ -49,10 +48,8 @@ public static partial class YouTubeApi
         public int AvgLike { get; init; }
         public int AvgView { get; init; }
         public int AvgComment { get; init; }
-        
-        
     }
-    
+
     public sealed record VideoDetailModel
     {
         public required string VideoId { get; init; }
@@ -70,7 +67,7 @@ public static partial class YouTubeApi
         public string? ThumbnailUrl { get; init; }
 
         public string? Tags { get; init; }
-        
+
         public string? TopicCategories { get; init; }
 
         public string? CategoryId { get; init; }
@@ -78,7 +75,7 @@ public static partial class YouTubeApi
         public string? DefaultLanguage { get; init; }
 
         public string? Duration { get; init; }
-        
+
         public string? Definition { get; init; }
 
         public string? Caption { get; init; }

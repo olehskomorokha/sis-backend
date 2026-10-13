@@ -47,9 +47,8 @@ public class ClientRepository : IClientRepository
         {
             return;
         }
+
         _dbContext.Clients.Remove(client);
         await _dbContext.SaveChangesAsync();
-        
-        
     }
 }

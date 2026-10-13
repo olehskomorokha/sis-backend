@@ -35,6 +35,7 @@ public class InfluencerService : IInfluencerService
                 scoresByInfluencerId.GetValueOrDefault(influencer.Id)))
             .ToList();
     }
+
     public async Task<List<InfluencerResponseModel>> GetAllAsync()
     {
         var influencers = await _influencerRepository.GetAllAsync();
@@ -97,7 +98,7 @@ public class InfluencerService : IInfluencerService
     {
         var criteria = await _productQueryAiService.ParseProductDescriptionAsync(filters.Description);
         var channels = await _elasticsearchService.RecommendBloggersAsync(criteria, filters);
-        
+
         return channels;
     }
 }

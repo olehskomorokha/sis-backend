@@ -1,5 +1,6 @@
 ﻿using SmartInfluence.Data.Entities;
 using SmartInfluence.Services.Models;
+
 namespace SmartInfluence.Services.Mappers;
 
 public class ClientInfluencerMapper
@@ -30,6 +31,7 @@ public class ClientInfluencerMapper
             InfluencerScore = score == null ? null : InfluencerMapper.MapToScoreModel(score)
         };
     }
+
     public static ClientInfluencer MapToClientInfluencer(int clientId, RecommendedChannelModel model, int influencerId)
     {
         return new ClientInfluencer

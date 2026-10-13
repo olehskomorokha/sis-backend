@@ -35,7 +35,7 @@ public static class InfluencerMapper
             CalculatedAt = score.CalculatedAt
         };
     }
-    
+
     public static RecommendedChannelModel MapToRecommendedChannelModel(
         YouTubeBloggerDocument channel,
         double? score,
@@ -45,7 +45,7 @@ public static class InfluencerMapper
         {
             Score = score,
             ChannelName = channel.Name,
-            ChannelId =  channel.ChannelId,
+            ChannelId = channel.ChannelId,
             ChannelUrl = channel.ChannelUrl,
             CountryCode = channel.CountryCode ?? string.Empty,
             Language = channel.Language ?? string.Empty,
@@ -77,7 +77,6 @@ public static class InfluencerMapper
         };
     }
 
-    
 
     public static InfluencerScore MapToInfluencerScoreEntity(RecommendedChannelModel model, int influencerId)
     {
@@ -92,7 +91,4 @@ public static class InfluencerMapper
             CalculatedAt = DateTime.UtcNow
         };
     }
-
-    
 }
-

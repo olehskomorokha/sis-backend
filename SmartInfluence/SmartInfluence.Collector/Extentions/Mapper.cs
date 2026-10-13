@@ -4,7 +4,8 @@ namespace SmartInfluence.Collector.Extentions;
 
 public class Mapper
 {
-    public static YouTubeApi.UkrainianYouTubeBloggerDto MapToBloggerDto(Google.Apis.YouTube.v3.Data.Channel channel, List<YouTubeApi.VideoDetailModel> videos)
+    public static YouTubeApi.UkrainianYouTubeBloggerDto MapToBloggerDto(Google.Apis.YouTube.v3.Data.Channel channel,
+        List<YouTubeApi.VideoDetailModel> videos)
     {
         var interests = InterestsCalculator.Calculate(channel, videos);
         var fields = FieldsCalculator.Calculate(channel, interests);
@@ -23,8 +24,8 @@ public class Mapper
             NickName = channel.Snippet?.CustomUrl,
             Description = channel.Snippet?.Description,
             AvatarUrl = channel.Snippet?.Thumbnails?.High?.Url
-                           ?? channel.Snippet?.Thumbnails?.Medium?.Url
-                           ?? channel.Snippet?.Thumbnails?.Default__?.Url,
+                        ?? channel.Snippet?.Thumbnails?.Medium?.Url
+                        ?? channel.Snippet?.Thumbnails?.Default__?.Url,
             IndexedAt = DateTime.UtcNow,
             Fields = fields,
             Interests = interests,
@@ -33,7 +34,6 @@ public class Mapper
                 EngagementRate = CalculateEngagementRate(averageLikes, averageComments * 2, perHalfYear.AvgView),
                 PerHalfYear = perHalfYear
             }
-            
         };
     }
 
@@ -63,6 +63,7 @@ public class Mapper
             CommentCount = video.Statistics?.CommentCount
         };
     }
+
     private static string GetPublishedAtOrEmpty(Google.Apis.YouTube.v3.Data.VideoSnippet? snippet)
     {
         if (snippet is null)
@@ -127,5 +128,4 @@ public class Mapper
 
         return (float)Math.Round(((averageLikes + 2 * averageComments) / avgViewCount.Value) * 100, 2);
     }
-   
 }

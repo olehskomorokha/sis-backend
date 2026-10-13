@@ -21,12 +21,11 @@ public class ElasticsearchController : ControllerBase
     {
         return await _elasticserchService.GetById(id);
     }
-    
+
     [Authorize]
     [HttpGet("bloggerTags")]
     public async Task<List<string>> GetAllBloggerTags()
     {
         return await _elasticserchService.GetAllBloggerTags();
     }
-    
 }

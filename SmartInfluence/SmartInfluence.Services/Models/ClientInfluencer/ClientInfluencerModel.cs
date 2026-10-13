@@ -16,13 +16,11 @@ public class ClientInfluencerModel
     public string AvatarUrl { get; set; }
     public int FollowersCount { get; set; }
     public int TotalScore { get; set; }
-    
+
     public decimal BrandFitScore { get; set; }
-    
+
     public string AiReview { get; set; }
     public Status Status { get; set; }
     public decimal PredictedEngagement { get; set; }
     public InfluencerScoreModel? InfluencerScore { get; set; }
-    
-    
 }

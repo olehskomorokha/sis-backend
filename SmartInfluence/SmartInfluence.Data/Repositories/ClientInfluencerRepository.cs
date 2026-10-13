@@ -15,9 +15,9 @@ public class ClientInfluencerRepository : IClientInfluencerRepository
 
     public async Task<List<ClientInfluencer>> GetAllAsync()
     {
-        return await  _dbContext.ClientInfluencers.AsNoTracking().ToListAsync();
+        return await _dbContext.ClientInfluencers.AsNoTracking().ToListAsync();
     }
-    
+
     public async Task<List<ClientInfluencer>> GetAllClientInfluencersAsync(int clientId)
     {
         return await _dbContext.ClientInfluencers

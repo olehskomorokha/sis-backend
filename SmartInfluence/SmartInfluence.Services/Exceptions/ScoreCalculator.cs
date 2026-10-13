@@ -36,7 +36,7 @@ public static class ScoreCalculator
         var normalizedScore = Math.Clamp(engagementRate / maxExpectedEngagementRate, 0f, 1f);
         return ToHundredScale((decimal)normalizedScore);
     }
-    
+
     public static decimal CalculatePostFrequencyScore(
         float postsPerDay,
         float maxExpectedPostsPerDay = DefaultMaxExpectedPostsPerDay)
@@ -56,8 +56,8 @@ public static class ScoreCalculator
         decimal postFrequencyScore)
     {
         var totalScore = brandFitScore * BrandFitWeight
-            + engagementScore * EngagementWeight
-            + postFrequencyScore * PostFrequencyWeight;
+                         + engagementScore * EngagementWeight
+                         + postFrequencyScore * PostFrequencyWeight;
         return (int)Math.Round(totalScore, MidpointRounding.AwayFromZero);
     }
 

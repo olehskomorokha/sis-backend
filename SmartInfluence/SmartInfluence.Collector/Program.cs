@@ -6,11 +6,16 @@ Console.OutputEncoding = Encoding.UTF8;
 const int unitsLimit = 300;
 string[] queries =
 [
-    "кіно", "інвестиції", "новини", "політика", "історія", "література", "дизайн", "фотографія", "мобільні ігри", "програмування", "штучний інтелект", "подорожі", "автомобілі", "електроніка", "гаджети",
+    "кіно", "інвестиції", "новини", "політика", "історія", "література", "дизайн", "фотографія", "мобільні ігри",
+    "програмування", "штучний інтелект", "подорожі", "автомобілі", "електроніка", "гаджети",
 
-    "наука", "астрономія", "космос", "освіта", "англійська мова", "математика", "бізнес", "стартапи", "маркетинг", "психологія", "мотивація", "саморозвиток", "кулінарія", "рецепти", "рибалка", "полювання", "туризм", "велоспорт", "волейбол", "баскетбол", "теніс",
+    "наука", "астрономія", "космос", "освіта", "англійська мова", "математика", "бізнес", "стартапи", "маркетинг",
+    "психологія", "мотивація", "саморозвиток", "кулінарія", "рецепти", "рибалка", "полювання", "туризм", "велоспорт",
+    "волейбол", "баскетбол", "теніс",
 
-    "єдиноборства", "біг", "фітнес", "gym", "музика", "кіно", "серіали", "аніме", "криптовалюта", "blockchain", "Docker", "ASP.NET", "C#", "PHP", "JavaScript", "React", "Angular", "Azure", "DevOps", "кібербезпека", "машинне навчання", "NLP", "робототехніка"
+    "єдиноборства", "біг", "фітнес", "gym", "музика", "кіно", "серіали", "аніме", "криптовалюта", "blockchain",
+    "Docker", "ASP.NET", "C#", "PHP", "JavaScript", "React", "Angular", "Azure", "DevOps", "кібербезпека",
+    "машинне навчання", "NLP", "робототехніка"
 ];
 var usedUnits = 0;
 
@@ -25,25 +30,25 @@ foreach (var query in queries)
     }
 
     var channels = await YouTubeApi.CollectUkrainianChannelsAsync(model, query);
-        
+
     // search.list + channels.list
     usedUnits += 101;
-    
+
     foreach (var channel in channels)
     {
         // playlistItems.list
         usedUnits += 1;
-            
+
         var videoIds = await YouTubeApi.GetChannelPlayListItemsAsync(model, channel.Id);
-            
+
         // videos.list
         usedUnits += (int)Math.Ceiling(videoIds.Count / 50.0);
-            
+
         var videoDetails = await YouTubeApi.GetChannelVideoDetailsAsync(model, videoIds);
         var mappedBlogger = Mapper.MapToBloggerDto(channel, videoDetails);
-            
+
         Console.WriteLine($"usedUnits: {usedUnits}");
-            
+
         await YouTubeElasticService.AddBloggerAsync(model, mappedBlogger);
     }
 }

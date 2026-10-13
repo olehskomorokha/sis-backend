@@ -25,8 +25,12 @@ public static class Settings
         var elasticApiKey = configuration["Elasticsearch:ApiKey"];
 
         var elasticSettings = new ElasticsearchClientSettings(new Uri(elasticUrl))
-            .DefaultIndex(elasticIndex)
-            .Authentication(new ApiKey(elasticApiKey));
+            .DefaultIndex(elasticIndex);
+        
+        if (!string.IsNullOrEmpty(elasticApiKey))
+        {
+            elasticSettings = elasticSettings.Authentication(new ApiKey(elasticApiKey));
+        }
 
         var elasticClient = new ElasticsearchClient(elasticSettings);
 

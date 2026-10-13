@@ -16,7 +16,8 @@ public class ProductQueryAiService : IProductQueryAiService
 
     public ProductQueryAiService(IConfiguration configuration, IElasticsearchService elasticsearchService)
     {
-        _apiKey = configuration["OpenAI:ApiKey"] ?? throw new InvalidOperationException("OpenAI:ApiKey is not configured.");
+        _apiKey = configuration["OpenAI:ApiKey"] ??
+                  throw new InvalidOperationException("OpenAI:ApiKey is not configured.");
         _model = configuration["OpenAI:Model"] ?? "gpt-4.1";
         _elasticsearchService = elasticsearchService;
     }
@@ -60,7 +61,7 @@ public class ProductQueryAiService : IProductQueryAiService
         };
         var completion = await client.CompleteChatAsync(messages);
 
-        var json = completion.Value.Content[0].Text;    
+        var json = completion.Value.Content[0].Text;
 
         var criteria = JsonSerializer.Deserialize<ProductCriteriaModel>(
             json,

@@ -8,7 +8,8 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
 {
     public AppDbContext CreateDbContext(string[] args)
     {
-        var apiProjectPath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "..", "SmartInfluence.Api"));
+        var apiProjectPath =
+            Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "..", "SmartInfluence.Api"));
 
         var configuration = new ConfigurationBuilder()
             .SetBasePath(apiProjectPath)
@@ -17,8 +18,9 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
             .AddEnvironmentVariables()
             .Build();
 
-        var connectionString = configuration.GetConnectionString("AzureConnection")
-            ?? throw new InvalidOperationException("Connection string 'DefaultConnection' was not found.");
+        var connectionString = configuration.GetConnectionString("PostgreSqlConnection")
+                               ?? throw new InvalidOperationException(
+                                   "Connection string 'DefaultConnection' was not found.");
 
         var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
         optionsBuilder.UseNpgsql(connectionString);

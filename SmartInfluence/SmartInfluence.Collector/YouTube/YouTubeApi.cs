@@ -13,7 +13,7 @@ public static partial class YouTubeApi
         searchRequest.Type = "video";
         searchRequest.RegionCode = "UA";
         searchRequest.MaxResults = 50;
-        
+
         // пошук блогерів (Search.List)
         var searchResponse = await searchRequest.ExecuteAsync(model.CancellationToken);
         // дістаємо id каналу для подальшого пошуку
@@ -28,10 +28,11 @@ public static partial class YouTubeApi
             return [];
         }
 
-        var channelsRequest = model.Service.Channels.List("snippet,contentDetails,statistics,topicDetails,brandingSettings");
+        var channelsRequest =
+            model.Service.Channels.List("snippet,contentDetails,statistics,topicDetails,brandingSettings");
         channelsRequest.Id = string.Join(",", channelIds);
         var channelsResponse = await channelsRequest.ExecuteAsync(model.CancellationToken);
-        
+
         return channelsResponse.Items?.ToList() ?? [];
     }
 
@@ -46,7 +47,7 @@ public static partial class YouTubeApi
             searchRequest.PlaylistId = StringConverter.ConvertChannelIdToPlaylistId(channelId);
             searchRequest.MaxResults = 50;
             searchRequest.PageToken = pageToken;
-            
+
             var searchResponse = await searchRequest.ExecuteAsync(model.CancellationToken);
 
             foreach (var item in searchResponse.Items ?? [])
@@ -62,6 +63,7 @@ public static partial class YouTubeApi
                 {
                     return result;
                 }
+
                 var videoId = item.Snippet?.ResourceId?.VideoId;
                 if (!string.IsNullOrWhiteSpace(videoId))
                 {
@@ -70,15 +72,15 @@ public static partial class YouTubeApi
             }
 
             pageToken = searchResponse.NextPageToken;
-            
         } while (!string.IsNullOrWhiteSpace(pageToken));
-       
+
         return result;
     }
 
-    public static async Task<List<YouTubeApi.VideoDetailModel>> GetChannelVideoDetailsAsync(YouTubeRequestModel model, List<string> videoIds)
+    public static async Task<List<VideoDetailModel>> GetChannelVideoDetailsAsync(YouTubeRequestModel model,
+        List<string> videoIds)
     {
-        var result = new List<YouTubeApi.VideoDetailModel>();
+        var result = new List<VideoDetailModel>();
 
         foreach (var batch in videoIds.Chunk(50))
         {
@@ -94,6 +96,7 @@ public static partial class YouTubeApi
                 result.Add(Mapper.MapToVideoDetails(video));
             }
         }
+
         return result;
     }
 }
