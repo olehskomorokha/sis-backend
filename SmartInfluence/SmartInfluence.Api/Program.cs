@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -11,6 +12,8 @@ using SmartInfluence.Services.Services;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using Elastic.Clients.Elasticsearch;
 using Elastic.Transport;
+using Microsoft.AspNetCore.Diagnostics;
+using SystemException = SmartInfluence.Services.Exceptions.SystemException;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -96,6 +99,16 @@ builder.Services.AddSwaggerGen(opt =>
         [new OpenApiSecuritySchemeReference("Bearer", document)] = []
     });
 });
+
+// and add 400 Bad Request error handling
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.UnmappedMemberHandling =
+            JsonUnmappedMemberHandling.Disallow;
+    });
+;
+
 builder.Services.AddCors(p => p.AddPolicy("corspolicy", build =>
 {
     build.WithOrigins(
@@ -109,6 +122,36 @@ builder.Services.AddCors(p => p.AddPolicy("corspolicy", build =>
 
 var app = builder.Build();
 
+// configure exception handling
+app.UseExceptionHandler(exceptionApp =>
+{
+    exceptionApp.Run(async context =>
+    {
+        var exception = context.Features
+            .Get<IExceptionHandlerFeature>()?
+            .Error;
+
+        if (exception is SystemException systemException)
+        {
+            context.Response.StatusCode = StatusCodes.Status400BadRequest;
+
+            await context.Response.WriteAsJsonAsync(new
+            {
+                code = systemException.Code,
+                message = systemException.Message
+            });
+
+            return;
+        }
+
+        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+
+        await context.Response.WriteAsJsonAsync(new
+        {
+            message = "Internal server error."
+        });
+    });
+});
 app.UseSwagger();
 app.UseSwaggerUI();
 

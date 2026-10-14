@@ -21,7 +21,7 @@ public class ClientInfluencerService : IClientInfluencerService
     public async Task<List<ClientInfluencerModel>> GetAllAsync(int clientId)
     {
         var clientInfluencers = await _repository.GetAllClientInfluencersAsync(clientId);
-
+        
         var influencerIds = clientInfluencers
             .Where(x => x.Influencer != null)
             .Select(x => x.Influencer!.Id)
@@ -35,8 +35,7 @@ public class ClientInfluencerService : IClientInfluencerService
             .Select(x => ClientInfluencerMapper.MapToClientInfluencerCardModel(
                 x,
                 x.Influencer!,
-                scoresByInfluencerId.GetValueOrDefault(x.Influencer!.Id)))
-            .ToList();
+                scoresByInfluencerId.GetValueOrDefault(x.Influencer!.Id))).ToList();
     }
 
     public async Task<bool> UpdateAsync(int clientId, int influencerId, UpdateClientInfluencerModel model)
